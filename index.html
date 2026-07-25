@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>お金コンパス</title>
+<style>
+:root{--bg:#f5fbf8;--card:#fff;--text:#18342d;--muted:#6c817b;--line:#dcebe5;--primary:#5db49a;--dark:#35866f;--accent:#f4c76b;--danger:#d86767}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif}
+button,input,select{font:inherit}.app{max-width:480px;margin:auto;min-height:100vh;padding:18px 16px 100px}.top{display:flex;justify-content:space-between;align-items:center}.top h1{font-size:22px}.small{font-size:12px;color:var(--muted)}
+.icon{border:0;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 8px 24px rgba(31,80,67,.08)}
+.hero,.card{background:#fff;border-radius:24px;padding:16px;box-shadow:0 8px 24px rgba(31,80,67,.08)}.hero{background:linear-gradient(135deg,#dff4ec,#fff8df);display:flex;gap:14px;align-items:center}
+.mascot{width:78px;height:78px}.hero strong{display:block;font-size:17px;margin-bottom:4px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.wide{grid-column:1/-1}
+.card h3{font-size:13px;color:var(--muted);margin:0 0 8px}.amount{font-size:25px;font-weight:800}.section{display:flex;justify-content:space-between;align-items:center;margin:20px 2px 10px}.section h2{font-size:17px;margin:0}.link{border:0;background:none;color:var(--dark);font-weight:700}
+.row{display:flex;justify-content:space-between;gap:10px}.fund,.txn{padding:12px 0;border-bottom:1px solid var(--line)}.fund:last-child,.txn:last-child{border-bottom:0}.progress{height:7px;background:#edf4f1;border-radius:99px;margin-top:7px;overflow:hidden}.progress span{display:block;height:100%;background:var(--primary)}
+.fab{position:fixed;right:max(20px,calc((100vw - 480px)/2 + 20px));bottom:84px;border:0;border-radius:999px;background:var(--dark);color:#fff;padding:13px 16px;font-weight:800}
+.nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(480px,100%);background:#fff;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);padding:8px}.nav button{border:0;background:none;color:var(--muted);font-size:11px}.nav button.active{color:var(--dark);font-weight:800}.nav span{display:block;font-size:20px}
+.sheetwrap{display:none;position:fixed;inset:0;background:#0005;align-items:flex-end;z-index:20}.sheetwrap.open{display:flex}.sheet{width:min(480px,100%);margin:auto;background:#fff;border-radius:28px 28px 0 0;padding:16px;max-height:90vh;overflow:auto}.sheethead{display:flex;justify-content:space-between;align-items:center}.close{border:0;border-radius:50%;width:36px;height:36px}.field{margin:12px 0}.field label{display:block;font-size:13px;color:var(--muted);font-weight:700;margin-bottom:6px}.field input,.field select{width:100%;padding:13px;border:1px solid var(--line);border-radius:15px}.primary{width:100%;border:0;border-radius:16px;background:var(--dark);color:#fff;padding:14px;font-weight:800}
+.chips{display:flex;gap:8px;overflow:auto}.chip{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 12px}.chat{display:grid;gap:10px;margin-top:12px}.bubble{max-width:88%;padding:12px;border-radius:18px;white-space:pre-line}.bot{background:#edf7f3}.user{background:var(--dark);color:#fff;margin-left:auto}.chatinput{display:flex;gap:8px;margin-top:12px}.chatinput input{flex:1;padding:12px;border:1px solid var(--line);border-radius:16px}.chatinput button{border:0;border-radius:16px;background:var(--dark);color:#fff;padding:0 14px}
+.hidden{display:none}.negative{color:var(--danger);font-weight:800}.settings button{width:100%;margin:6px 0;padding:14px;border:1px solid var(--line);border-radius:16px;background:#fff;text-align:left;font-weight:700}
+@media(max-width:360px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top"><div><h1>お金コンパス</h1><div class="small" id="cycle"></div></div><button class="icon" id="expenseBtn">＋ 支出</button></div>
+
+<main id="home">
+<section class="hero">
+<svg class="mascot" viewBox="0 0 120 120" aria-label="コンパスくん"><circle cx="60" cy="60" r="53" fill="#fff" stroke="#5db49a" stroke-width="6"/><circle cx="60" cy="60" r="43" fill="#e9f7f2"/><path d="M60 22L72 60L60 98L48 60Z" fill="#f4c76b"/><circle cx="46" cy="52" r="4" fill="#18342d"/><circle cx="74" cy="52" r="4" fill="#18342d"/><path d="M48 69Q60 79 72 69" fill="none" stroke="#18342d" stroke-width="4" stroke-linecap="round"/></svg>
+<div id="message"></div>
+</section>
+<section class="grid">
+<div class="card"><h3>食費・日用品</h3><div class="amount" id="food"></div><div class="small">今月の残り</div></div>
+<div class="card"><h3>お小遣い</h3><div class="amount" id="pocket"></div><div class="small">翌月へ繰り越し</div></div>
+<div class="card wide"><h3>今月あと使える金額</h3><div class="amount" id="spendable"></div></div>
+</section>
+<div class="section"><h2>目的別資金</h2></div><section class="card" id="funds"></section>
+<div class="section"><h2>最近の支出</h2><button class="link" id="expenseBtn2">記録する</button></div><section class="card" id="txns"></section>
+</main>
+
+<main id="accounts" class="hidden"><div class="section"><h2>口座・目的別資金</h2></div><section class="card" id="allFunds"></section></main>
+<main id="calendar" class="hidden"><div class="section"><h2>予定</h2></div><section class="card" id="events"></section></main>
+<main id="report" class="hidden"><div class="section"><h2>今月のレポート</h2></div><section class="card" id="reportCard"></section></main>
+<main id="settings" class="hidden"><div class="section"><h2>設定・データ</h2></div><div class="settings"><button id="exportBtn">データを書き出す（JSON）</button><button id="importBtn">データを読み込む</button><button id="resetBtn">サンプルデータに戻す</button><input id="file" class="hidden" type="file" accept="application/json"></div></main>
+</div>
+
+<button class="fab" id="aiBtn">🧭 コンパスに相談</button>
+<nav class="nav">
+<button class="active" data-view="home"><span>⌂</span>ホーム</button><button data-view="accounts"><span>◫</span>口座</button><button data-view="calendar"><span>◷</span>予定</button><button data-view="report"><span>▥</span>レポート</button><button data-view="settings"><span>⚙︎</span>設定</button>
+</nav>
+
+<div class="sheetwrap" id="expenseSheet"><div class="sheet"><div class="sheethead"><h2>支出を記録</h2><button class="close" data-close="expenseSheet">×</button></div>
+<form id="expenseForm">
+<div class="field"><label>金額</label><input id="amount" type="number" min="1" required></div>
+<div class="field"><label>カテゴリ</label><select id="category"><option>食費・日用品</option><option>お小遣い</option><option>旅行費</option><option>遠距離費</option><option>特別費</option></select></div>
+<div class="field"><label>支払元</label><select id="source"><option>au PAY</option><option>V NEOBANK 食費資金</option><option>現金・その他</option><option>楽天銀行</option></select></div>
+<div class="field"><label>メモ</label><input id="memo" placeholder="例：昼ごはん"></div>
+<div class="field"><label>日付</label><input id="date" type="date"></div>
+<button class="primary">内容を確認して記録</button>
+</form></div></div>
+
+<div class="sheetwrap" id="aiSheet"><div class="sheet">
+<div class="sheethead"><h2>🧭 コンパス</h2><button class="close" data-close="aiSheet">×</button></div>
+
+<div style="font-weight:800;margin:6px 0 8px">レベル1｜すぐ確認</div>
+<div class="small" style="margin-bottom:10px">保存中の家計データだけで、その場で計算して答えるよ。</div>
+<div class="chips">
+<button class="chip">今月あといくら使える？</button>
+<button class="chip">食費はいくら残ってる？</button>
+<button class="chip">旅行費は足りる？</button>
+<button class="chip">定期券は間に合う？</button>
+<button class="chip">今月の支出状況は？</button>
+</div>
+<div class="chat" id="chat"></div>
+
+<div style="height:1px;background:var(--line);margin:20px 0"></div>
+<div style="font-weight:800;margin-bottom:8px">レベル2｜ChatGPTに詳しく相談</div>
+<div class="small" style="margin-bottom:10px">相談内容と現在の家計状況を「相談用テキスト」にまとめるよ。コピーしてChatGPTに貼り付ければOK。</div>
+<div class="field"><label>相談したいこと</label><input id="deepQuestion" placeholder="例：来月の給料をどう配分したらいい？"></div>
+<button class="primary" id="makeConsultText" type="button">相談用テキストを作る</button>
+
+<div id="consultArea" class="hidden" style="margin-top:12px">
+<div class="field"><label>相談用テキスト</label>
+<textarea id="consultText" readonly style="width:100%;min-height:250px;padding:13px;border:1px solid var(--line);border-radius:15px;background:#fbfdfc;color:var(--text)"></textarea>
+</div>
+<button class="primary" id="copyConsult" type="button">コピーしてChatGPTを開く</button>
+<button class="icon" id="copyOnly" type="button" style="width:100%;margin-top:8px">テキストだけコピー</button>
+</div>
+</div></div>
+
+<script>
+const yen=n=>new Intl.NumberFormat("ja-JP",{style:"currency",currency:"JPY",maximumFractionDigits:0}).format(n);
+const today=()=>new Date().toISOString().slice(0,10);
+const sample={cycleStartDay:25,balances:{foodBudget:32000,pocket:14500},sources:{"au PAY":9800,"V NEOBANK 食費資金":18200,"現金・その他":4000,"楽天銀行":83000},funds:[{name:"旅行費",balance:35000,target:50000,deadline:"2026-08-06"},{name:"定期券",balance:27000,target:54310,deadline:"2027-01-23"},{name:"生活防衛資金",balance:120000,target:300000,deadline:"2027-12-31"},{name:"同棲資金",balance:180000,target:500000,deadline:"2027-10-01"}],events:[{date:"2026-08-06",title:"旅行",amount:50000,category:"旅行費"},{date:"2027-01-23",title:"定期券更新",amount:54310,category:"定期券"}],transactions:[{id:"1",date:today(),amount:850,category:"食費・日用品",source:"au PAY",memo:"昼ごはん",inputMethod:"app"},{id:"2",date:today(),amount:500,category:"食費・日用品",source:"V NEOBANK 食費資金",memo:"会社食堂",inputMethod:"shortcut"}]};
+let state=JSON.parse(localStorage.getItem("moneyCompassState")||"null")||JSON.parse(JSON.stringify(sample));
+const save=()=>localStorage.setItem("moneyCompassState",JSON.stringify(state));
+const spent=c=>state.transactions.filter(t=>t.category===c).reduce((s,t)=>s+t.amount,0);
+const food=()=>Math.max(0,state.balances.foodBudget-spent("食費・日用品"));
+const pocket=()=>Math.max(0,state.balances.pocket-spent("お小遣い"));
+const fund=n=>state.funds.find(f=>f.name===n);
+function fundHTML(f){const p=Math.min(100,Math.round(f.balance/f.target*100));return `<div class="fund"><div class="row"><div><b>${f.name}</b><div class="small">${yen(f.balance)} / ${yen(f.target)} ・ ${f.deadline}</div></div><b>${p}%</b></div><div class="progress"><span style="width:${p}%"></span></div></div>`}
+function render(){
+document.getElementById("cycle").textContent="給料サイクル 25日〜24日";
+const pass=fund("定期券");document.getElementById("message").innerHTML=`<strong>今日は順調だよ😊</strong>定期券はあと${yen(pass.target-pass.balance)}。次の入金で優先する案があるよ。`;
+document.getElementById("food").textContent=yen(food());document.getElementById("pocket").textContent=yen(pocket());document.getElementById("spendable").textContent=yen(food()+pocket());
+document.getElementById("funds").innerHTML=state.funds.slice(0,3).map(fundHTML).join("");document.getElementById("allFunds").innerHTML=state.funds.map(fundHTML).join("");
+document.getElementById("events").innerHTML=state.events.map(e=>`<div class="fund row"><div><b>${e.title}</b><div class="small">${e.date} ・ ${e.category}</div></div><b>${yen(e.amount)}</b></div>`).join("");
+document.getElementById("txns").innerHTML=[...state.transactions].reverse().slice(0,5).map(t=>`<div class="txn row"><div><b>${t.memo||t.category}</b><div class="small">${t.date} ・ ${t.category} ・ ${t.source} ・ ${t.inputMethod}</div></div><div class="negative">-${yen(t.amount)}</div></div>`).join("");
+const total=state.transactions.reduce((s,t)=>s+t.amount,0);document.getElementById("reportCard").innerHTML=`<h3>期間内の支出</h3><div class="amount">${yen(total)}</div><div class="small">${state.transactions.length}件を記録</div>`;
+}
+function openS(id){document.getElementById(id).classList.add("open")}function closeS(id){document.getElementById(id).classList.remove("open")}
+document.getElementById("expenseBtn").onclick=()=>openS("expenseSheet");document.getElementById("expenseBtn2").onclick=()=>openS("expenseSheet");document.getElementById("aiBtn").onclick=()=>openS("aiSheet");
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeS(b.dataset.close));
+document.getElementById("date").value=today();
+document.getElementById("expenseForm").onsubmit=e=>{e.preventDefault();const amount=Number(document.getElementById("amount").value),category=document.getElementById("category").value,source=document.getElementById("source").value,memo=document.getElementById("memo").value,date=document.getElementById("date").value||today();if(!confirm(`${source}から${category}として${yen(amount)}を記録しますか？`))return;state.transactions.push({id:Date.now()+"",date,amount,category,source,memo,inputMethod:"app"});if(state.sources[source]!=null)state.sources[source]=Math.max(0,state.sources[source]-amount);const f=state.funds.find(x=>x.name===category);if(f)f.balance=Math.max(0,f.balance-amount);save();render();e.target.reset();document.getElementById("date").value=today();closeS("expenseSheet")};
+function daysUntil(dateStr){
+  const now=new Date(); now.setHours(0,0,0,0);
+  const target=new Date(dateStr+"T00:00:00");
+  return Math.ceil((target-now)/86400000);
+}
+function answer(q){
+  const trip=fund("旅行費"), pass=fund("定期券");
+  const available=food()+pocket();
+  const totalSpent=state.transactions.reduce((s,t)=>s+t.amount,0);
+
+  if(q.includes("使える"))
+    return `今月あと使える金額は ${yen(available)} だよ。\n食費・日用品が ${yen(food())}、お小遣いが ${yen(pocket())} 残っているよ。`;
+
+  if(q.includes("食費"))
+    return `食費・日用品はあと ${yen(food())} だよ。\n今月の食費・日用品の記録額は ${yen(spent("食費・日用品"))}。`;
+
+  if(q.includes("旅行")){
+    const shortage=Math.max(0,trip.target-trip.balance);
+    const days=daysUntil(trip.deadline);
+    return shortage===0
+      ? `旅行費は ${yen(trip.balance)} 確保できていて、目標 ${yen(trip.target)} に到達しているよ😊`
+      : `旅行費は現在 ${yen(trip.balance)}。\n目標 ${yen(trip.target)} まであと ${yen(shortage)}、期限まで約 ${Math.max(0,days)} 日だよ。`;
+  }
+
+  if(q.includes("定期券")){
+    const shortage=Math.max(0,pass.target-pass.balance);
+    const days=daysUntil(pass.deadline);
+    return `定期券は現在 ${yen(pass.balance)}。\n必要額 ${yen(pass.target)} まであと ${yen(shortage)}、期限まで約 ${Math.max(0,days)} 日だよ。`;
+  }
+
+  if(q.includes("支出") || q.includes("状況"))
+    return `今のデータでは支出を ${state.transactions.length} 件、合計 ${yen(totalSpent)} 記録しているよ。\n食費・日用品は ${yen(spent("食費・日用品"))}、お小遣いは ${yen(spent("お小遣い"))}。`;
+
+  return "レベル1では、今月使える金額・食費・旅行費・定期券・支出状況を確認できるよ。深い判断は下のレベル2でChatGPTに相談しよう。";
+}
+function bubble(t,c){
+  const d=document.createElement("div");
+  d.className="bubble "+c;
+  d.textContent=t;
+  document.getElementById("chat").appendChild(d);
+}
+function ask(q){
+  if(!q)return;
+  bubble(q,"user");
+  setTimeout(()=>bubble(answer(q),"bot"),120);
+}
+document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>ask(b.textContent));
+bubble("レベル1は、保存中の数字を使ってその場で答えるよ😊","bot");
+
+function buildConsultText(question){
+  const totalSpent=state.transactions.reduce((s,t)=>s+t.amount,0);
+  const fundsText=state.funds.map(f=>{
+    const shortage=Math.max(0,f.target-f.balance);
+    return `- ${f.name}: 現在 ${yen(f.balance)} / 目標 ${yen(f.target)} / 不足 ${yen(shortage)} / 期限 ${f.deadline}`;
+  }).join("\n");
+
+  const recent=[...state.transactions].reverse().slice(0,10).map(t=>
+    `- ${t.date} ${t.memo||"(メモなし)"} / ${t.category} / ${yen(t.amount)} / 支払元:${t.source}`
+  ).join("\n") || "- なし";
+
+  return `あなたは私の個人用お金管理AI「コンパス」です。
+次の家計データを前提に、相談へ答えてください。
+
+【絶対ルール】
+- 勝手に残高を変更したことにしない。
+- 資金移動や配分は必ず「提案」として示し、最終判断は私に委ねる。
+- 責めたり不安を煽ったりせず、具体的な金額を使って説明する。
+- 「貯めること」と「生活や旅行を楽しむこと」の両立を重視する。
+- データだけでは判断できない点は推測で断定せず確認する。
+
+【現在の家計状況】
+給料サイクル: 25日〜24日
+食費・日用品の残り: ${yen(food())}
+お小遣いの残り: ${yen(pocket())}
+今月あと使える金額: ${yen(food()+pocket())}
+このデータ内の支出合計: ${yen(totalSpent)}
+
+【目的別資金】
+${fundsText}
+
+【最近の支出 最大10件】
+${recent}
+
+【今回相談したいこと】
+${question || "現在の家計状況を見て、気になる点とおすすめの次の行動を教えて。"}
+
+回答は、
+1. 結論
+2. 数字の根拠
+3. おすすめ案
+4. 私が決めるべきこと
+の順で、読みやすく答えてください。`;
+}
+
+document.getElementById("makeConsultText").onclick=()=>{
+  const q=document.getElementById("deepQuestion").value.trim();
+  document.getElementById("consultText").value=buildConsultText(q);
+  document.getElementById("consultArea").classList.remove("hidden");
+};
+
+async function copyConsult(openChatGPT){
+  const text=document.getElementById("consultText").value;
+  if(!text)return;
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch{
+    const ta=document.getElementById("consultText");
+    ta.focus(); ta.select();
+    document.execCommand("copy");
+  }
+  alert("相談用テキストをコピーしたよ。ChatGPTで貼り付けて送信してね。");
+  if(openChatGPT) window.open("https://chatgpt.com/","_blank");
+}
+document.getElementById("copyConsult").onclick=()=>copyConsult(true);
+document.getElementById("copyOnly").onclick=()=>copyConsult(false);
+
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");["home","accounts","calendar","report","settings"].forEach(v=>document.getElementById(v).classList.toggle("hidden",v!==b.dataset.view))});
+document.getElementById("exportBtn").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}));a.download="money-compass-"+today()+".json";a.click()};
+document.getElementById("importBtn").onclick=()=>document.getElementById("file").click();document.getElementById("file").onchange=async e=>{try{state=JSON.parse(await e.target.files[0].text());save();render();alert("読み込みました")}catch{alert("読み込みに失敗しました")}};
+document.getElementById("resetBtn").onclick=()=>{if(confirm("サンプルデータに戻しますか？")){state=JSON.parse(JSON.stringify(sample));save();render()}};
+render();
+</script>
+</body>
+</html>
