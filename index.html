@@ -1,0 +1,1334 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>お金コンパス</title>
+<style>
+:root{--bg:#f5fbf8;--card:#fff;--text:#18342d;--muted:#6c817b;--line:#dcebe5;--primary:#5db49a;--dark:#35866f;--accent:#f4c76b;--danger:#d86767}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif}
+button,input,select,textarea{font:inherit} button{-webkit-tap-highlight-color:transparent}.app{max-width:480px;margin:auto;min-height:100vh;padding:18px 16px calc(132px + env(safe-area-inset-bottom))}.top{display:flex;justify-content:space-between;align-items:center}.top h1{font-size:22px}.small{font-size:12px;color:var(--muted)}
+.icon{border:0;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 8px 24px rgba(31,80,67,.08)}
+.hero,.card{background:#fff;border-radius:24px;padding:16px;box-shadow:0 8px 24px rgba(31,80,67,.08)}.hero{background:linear-gradient(135deg,#dff4ec,#fff8df);display:flex;gap:14px;align-items:center}
+.mascot{width:78px;height:78px}.hero strong{display:block;font-size:17px;margin-bottom:4px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.wide{grid-column:1/-1}
+.card h3{font-size:13px;color:var(--muted);margin:0 0 8px}.amount{font-size:25px;font-weight:800}.section{display:flex;justify-content:space-between;align-items:center;margin:20px 2px 10px}.section h2{font-size:17px;margin:0}.link{border:0;background:none;color:var(--dark);font-weight:700}
+.row{display:flex;justify-content:space-between;gap:10px}.fund,.txn{padding:12px 0;border-bottom:1px solid var(--line)}.fund:last-child,.txn:last-child{border-bottom:0}.progress{height:7px;background:#edf4f1;border-radius:99px;margin-top:7px;overflow:hidden}.progress span{display:block;height:100%;background:var(--primary)}
+.fab{position:fixed;right:max(20px,calc((100vw - 480px)/2 + 20px));bottom:calc(92px + env(safe-area-inset-bottom));border:0;border-radius:999px;background:var(--dark);color:#fff;padding:13px 16px;font-weight:800}
+.nav{
+position:fixed;left:50%;bottom:0;transform:translateX(-50%);
+width:min(480px,100%);background:rgba(255,255,255,.97);
+backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+display:grid;grid-template-columns:repeat(5,1fr);
+border-top:1px solid var(--line);
+padding:8px 8px calc(14px + env(safe-area-inset-bottom));
+z-index:40
+}
+.nav button{
+border:0;background:none;color:var(--muted);
+font-size:12px;min-height:58px;padding:7px 2px 5px;
+border-radius:16px;display:flex;flex-direction:column;
+align-items:center;justify-content:center;gap:3px;
+-webkit-tap-highlight-color:transparent;touch-action:manipulation
+}
+.nav button.active{color:var(--dark);font-weight:800;background:#f1f8f5}
+.nav span{display:block;font-size:23px;line-height:1}
+.sheetwrap{display:none;position:fixed;inset:0;background:#0005;align-items:flex-end;z-index:20}.sheetwrap.open{display:flex}.sheet{width:min(480px,100%);margin:auto;background:#fff;border-radius:28px 28px 0 0;padding:16px;max-height:90vh;overflow:auto}.sheethead{display:flex;justify-content:space-between;align-items:center}.close{border:0;border-radius:50%;width:36px;height:36px}.field{margin:12px 0}.field label{display:block;font-size:13px;color:var(--muted);font-weight:700;margin-bottom:6px}.field input,.field select{width:100%;padding:13px;border:1px solid var(--line);border-radius:15px}.primary{width:100%;border:0;border-radius:16px;background:var(--dark);color:#fff;padding:14px;font-weight:800}
+.chips{display:flex;gap:8px;overflow:auto}.chip{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 12px}.chat{display:grid;gap:10px;margin-top:12px}.bubble{max-width:88%;padding:12px;border-radius:18px;white-space:pre-line}.bot{background:#edf7f3}.user{background:var(--dark);color:#fff;margin-left:auto}.chatinput{display:flex;gap:8px;margin-top:12px}.chatinput input{flex:1;padding:12px;border:1px solid var(--line);border-radius:16px}.chatinput button{border:0;border-radius:16px;background:var(--dark);color:#fff;padding:0 14px}
+.hidden{display:none}.negative{color:var(--danger);font-weight:800}.settings button{width:100%;margin:6px 0;padding:14px;border:1px solid var(--line);border-radius:16px;background:#fff;text-align:left;font-weight:700}.setup-note{background:#fff8df;border-radius:16px;padding:12px;margin:10px 0;font-size:13px;line-height:1.6}.editgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.dangerbtn{border-color:#f1caca!important;color:#b74747!important}.mini{font-size:11px;color:var(--muted)}
+@media(max-width:360px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}}
+
+.cal-card{background:#fff;border-radius:24px;padding:14px;box-shadow:0 8px 24px rgba(31,80,67,.08)}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-head button{border:0;background:#eef5f2;border-radius:12px;width:38px;height:38px;color:var(--text);font-size:18px}
+.cal-title{font-size:17px;font-weight:800}
+.cal-week,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-week div{text-align:center;font-size:11px;color:var(--muted);padding:5px 0}
+.cal-day{position:relative;aspect-ratio:1/1;border:0;background:transparent;border-radius:14px;color:var(--text);display:flex;align-items:center;justify-content:center;font-size:14px}
+.cal-day.muted{color:#b6c2be}.cal-day.today{background:#e8f5f0;font-weight:800}.cal-day.selected{outline:2px solid var(--primary);font-weight:800}
+.cal-dot{position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--dark)}
+.cal-actions{display:flex;gap:8px;margin-top:12px}.cal-actions button{flex:1}
+.event-date-label{font-size:13px;font-weight:800;margin:14px 2px 8px;color:var(--muted)}
+
+
+.account-card{background:#fff;border-radius:22px;padding:15px;margin-bottom:12px;box-shadow:0 8px 24px rgba(31,80,67,.08)}
+.account-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.account-actions{display:flex;gap:8px;margin-top:12px}.account-actions button{flex:1}
+.alloc-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.alloc-row:last-child{border-bottom:0}.alloc-input{width:120px!important;text-align:right}
+.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#edf7f3;font-size:11px;color:var(--dark);font-weight:800}
+
+.import-ok{background:#edf8f2;border:1px solid #cfe9dc;border-radius:15px;padding:12px;margin-top:10px;font-size:13px;line-height:1.55}
+.import-warn{background:#fff6df;border:1px solid #f2dfab;border-radius:15px;padding:12px;margin-top:10px;font-size:13px;line-height:1.55}
+
+.proposal-compare{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.proposal-compare:last-child{border-bottom:0}
+.proposal-compare .muted{color:var(--muted)}
+.diff-up{font-weight:800}.diff-down{font-weight:800}
+.history-card{background:#f8fbfa;border-radius:16px;padding:12px;margin-top:10px}
+
+#incomeSheet{z-index:80}
+#incomeSheet .sheet{
+  padding-bottom:calc(120px + env(safe-area-inset-bottom));
+}
+#applyAllocation{
+  position:sticky;
+  bottom:calc(12px + env(safe-area-inset-bottom));
+  z-index:6;
+  box-shadow:0 10px 26px rgba(24,52,45,.22);
+}
+.ai-comment{
+  background:#eef7f3;
+  border:1px solid #d7ebe2;
+  border-radius:16px;
+  padding:13px;
+  margin:12px 0;
+  line-height:1.65;
+  font-size:13px;
+  white-space:pre-wrap;
+}
+.shortcut-status{
+  background:#eef7f3;
+  border-radius:15px;
+  padding:12px;
+  margin-top:10px;
+  font-size:13px;
+  line-height:1.55;
+}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top"><div><h1>お金コンパス</h1><div class="small" id="cycle"></div></div><button class="icon" id="expenseBtn">＋ 支出</button></div>
+
+<main id="home">
+<section class="hero">
+<svg class="mascot" viewBox="0 0 120 120" aria-label="コンパスくん"><circle cx="60" cy="60" r="53" fill="#fff" stroke="#5db49a" stroke-width="6"/><circle cx="60" cy="60" r="43" fill="#e9f7f2"/><path d="M60 22L72 60L60 98L48 60Z" fill="#f4c76b"/><circle cx="46" cy="52" r="4" fill="#18342d"/><circle cx="74" cy="52" r="4" fill="#18342d"/><path d="M48 69Q60 79 72 69" fill="none" stroke="#18342d" stroke-width="4" stroke-linecap="round"/></svg>
+<div id="message"></div>
+</section>
+<section class="grid">
+<div class="card"><h3>食費・日用品</h3><div class="amount" id="food"></div><div class="small">今月の残り</div></div>
+<div class="card"><h3>お小遣い</h3><div class="amount" id="pocket"></div><div class="small">翌月へ繰り越し</div></div>
+<div class="card wide"><h3>今月あと使える金額</h3><div class="amount" id="spendable"></div></div>
+</section>
+<div class="section"><h2>目的別資金</h2></div><section class="card" id="funds"></section>
+<div class="section"><h2>最近の支出</h2><button class="link" id="expenseBtn2">記録する</button></div><section class="card" id="txns"></section>
+</main>
+
+<main id="accounts" class="hidden">
+<div class="section"><h2>資金管理</h2><button class="link" id="addFundBtn">＋目的別資金</button></div>
+
+<section class="card" style="margin-bottom:12px">
+<h3>普段使い</h3>
+<div class="fund row"><div><b>食費・日用品</b><div class="small">日常の食事・日用品</div></div><b id="accountFood"></b></div>
+<div class="fund row"><div><b>お小遣い</b><div class="small">自由に使うお金</div></div><b id="accountPocket"></b></div>
+</section>
+
+<button class="primary" id="incomeBtn" type="button" style="margin-bottom:14px">＋ 収入を入力・振り分けを考える</button>
+
+<div class="section"><h2>目的別資金</h2></div>
+<section id="allFunds"></section>
+</main>
+<main id="calendar" class="hidden">
+<div class="section"><h2>予定</h2></div>
+<section class="cal-card">
+  <div class="cal-head">
+    <button id="prevMonth" aria-label="前の月">‹</button>
+    <div class="cal-title" id="calendarTitle"></div>
+    <button id="nextMonth" aria-label="次の月">›</button>
+  </div>
+  <div class="cal-week"><div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div></div>
+  <div class="cal-grid" id="calendarGrid"></div>
+  <div class="cal-actions">
+    <button class="icon" id="todayBtn">今日</button>
+    <button class="icon" id="addEventBtn">＋ 予定を追加</button>
+  </div>
+</section>
+<div class="event-date-label" id="eventDateLabel"></div>
+<section class="card" id="events"></section>
+</main>
+<main id="report" class="hidden"><div class="section"><h2>今月のレポート</h2></div><section class="card" id="reportCard"></section></main>
+<main id="settings" class="hidden">
+<div class="section"><h2>設定・データ</h2></div>
+<div class="settings">
+<div class="setup-note"><b>v0.3から実データ運用</b><br>ここで現在の管理残高を入力できます。アプリは銀行残高を自動取得せず、あなたが入力・承認した数字だけを使います。</div>
+<button id="openSetup">現在の残高・目的別資金を設定する</button>
+<button id="exportBtn">バックアップを書き出す（JSON）</button>
+<button id="importBtn">バックアップを読み込む</button>
+<button id="showAllocationHistory">最近の振り分け判断を見る</button>
+<button class="dangerbtn" id="clearTxBtn">支出履歴だけを全消去する</button>
+<input id="file" class="hidden" type="file" accept="application/json">
+</div>
+</main>
+</div>
+
+<button class="fab" id="aiBtn">🧭 コンパスに相談</button>
+<nav class="nav">
+<button class="active" data-view="home"><span>⌂</span>ホーム</button><button data-view="accounts"><span>◫</span>口座</button><button data-view="calendar"><span>◷</span>予定</button><button data-view="report"><span>▥</span>レポート</button><button data-view="settings"><span>⚙︎</span>設定</button>
+</nav>
+
+<div class="sheetwrap" id="expenseSheet"><div class="sheet"><div class="sheethead"><h2>支出を記録</h2><button class="close" data-close="expenseSheet">×</button></div>
+<form id="expenseForm">
+<div class="field"><label>金額</label><input id="amount" type="number" min="1" required></div>
+<div class="field"><label>使うお金</label><select id="category"><option>食費・日用品</option><option>お小遣い</option></select></div>
+
+<div class="field"><label>メモ</label><input id="memo" placeholder="例：昼ごはん"></div>
+<div class="field"><label>日付</label><input id="date" type="date"></div>
+<button class="primary">内容を確認して記録</button>
+</form></div></div>
+
+<div class="sheetwrap" id="aiSheet"><div class="sheet">
+<div class="sheethead"><h2>🧭 コンパス</h2><button class="close" data-close="aiSheet">×</button></div>
+
+<div class="small" style="margin-bottom:10px">
+まずは普通に質問してね。保存中の家計データだけで判断できる内容なら、その場で答えるよ。
+判断材料が足りない相談なら、ChatGPT用の相談テキストを作るよ。
+</div>
+
+<div class="field">
+  <label>コンパスに相談</label>
+  <textarea id="compassQuestion" placeholder="例：旅行まであとどのくらい足りない？&#10;例：今月あと1万円使っても大丈夫？"
+    style="width:100%;min-height:110px;padding:13px;border:1px solid var(--line);border-radius:15px;background:#fbfdfc;color:var(--text)"></textarea>
+</div>
+
+<button class="primary" id="askCompass" type="button">コンパスに聞く</button>
+
+<div id="compassAnswerWrap" class="hidden" style="margin-top:14px">
+  <div class="bubble bot" id="compassAnswer"></div>
+</div>
+
+<div id="chatgptHandoff" class="hidden" style="margin-top:16px">
+  <div style="height:1px;background:var(--line);margin:14px 0"></div>
+  <div style="font-weight:800;margin-bottom:8px">ChatGPTに詳しく相談</div>
+  <div class="small" id="handoffReason" style="margin-bottom:10px"></div>
+  <button class="primary" id="makeConsultText" type="button">相談用テキストを作る</button>
+
+  <div id="consultArea" class="hidden" style="margin-top:12px">
+    <div class="field"><label>相談用テキスト</label>
+      <textarea id="consultText" readonly
+        style="width:100%;min-height:250px;padding:13px;border:1px solid var(--line);border-radius:15px;background:#fbfdfc;color:var(--text)"></textarea>
+    </div>
+    <button class="primary" id="copyConsult" type="button">コピーしてChatGPTを開く</button>
+    <button class="icon" id="copyOnly" type="button" style="width:100%;margin-top:8px">テキストだけコピー</button>
+  </div>
+</div>
+
+</div></div>
+
+
+
+
+<div class="sheetwrap" id="historySheet"><div class="sheet">
+<div class="sheethead"><h2>振り分け判断の履歴</h2><button class="close" data-close="historySheet">×</button></div>
+<div id="allocationHistoryList"></div>
+</div></div>
+
+<div class="sheetwrap" id="incomeSheet"><div class="sheet">
+<div class="sheethead"><h2>収入を入力</h2><button class="close" data-close="incomeSheet">×</button></div>
+
+<div class="field"><label>入ってきた金額</label><input id="incomeAmount" type="number" min="1" inputmode="numeric" placeholder="例：100000"></div>
+<div class="field"><label>メモ</label><input id="incomeMemo" placeholder="例：V NEOBANKへ入金、給料、ボーナス"></div>
+
+<div class="setup-note">
+<b>ショートカット自動連携</b><br>
+「AIに振り分け相談」を押すだけで、相談文をショートカットへ直接渡します。<br>
+AI回答後は自動でお金コンパスへ戻り、振り分け案も自動で読み込みます。<br>
+<b>通常はコピー・貼り付け・「結果を読み込む」操作は不要です。</b>
+</div>
+
+<button class="primary" id="runIncomeShortcut" type="button">🧭 AIに振り分け相談</button>
+<div id="shortcutRunStatus" class="hidden shortcut-status"></div>
+<button class="link" id="incomeAiConsult" type="button" style="width:100%;margin-top:8px">うまく動かない時は手動連携を使う</button>
+
+<div id="incomeAiArea" class="hidden" style="margin-top:14px">
+  <div class="field"><label>手動連携：ChatGPTへ送る相談テキスト</label>
+    <textarea id="incomeConsultText" readonly style="width:100%;min-height:250px;padding:13px;border:1px solid var(--line);border-radius:15px;background:#fbfdfc;color:var(--text)"></textarea>
+  </div>
+  <button class="primary" id="copyIncomeConsult" type="button">相談文をコピーしてChatGPTを開く</button>
+
+  <div style="height:1px;background:var(--line);margin:18px 0"></div>
+  <div class="field">
+    <label>手動連携：ChatGPTの回答を貼り付け</label>
+    <textarea id="incomeAiResponse" placeholder="ChatGPTの回答全文をここに貼り付けてね" style="width:100%;min-height:220px;padding:13px;border:1px solid var(--line);border-radius:15px;background:#fff;color:var(--text)"></textarea>
+  </div>
+  <button class="primary" id="importIncomeResponse" type="button">貼り付けた回答を読み込む</button>
+  <div id="incomeImportStatus" class="hidden"></div>
+</div>
+
+<div id="allocationArea" class="hidden" style="margin-top:16px">
+  <div id="incomeAiCommentWrap" class="hidden">
+    <div style="font-weight:800;margin-bottom:6px">🧭 コンパスの提案理由</div>
+    <div id="incomeAiComment" class="ai-comment"></div>
+  </div>
+  <div class="setup-note"><b>最終確認</b><br>AI提案を読み込んだ後も、金額はすべて自分で変更できます。ここではまだ残高は変わっていません。</div>
+  <div id="allocationRows"></div>
+  <div class="row" style="margin:12px 0"><b>未振り分け</b><b id="unallocatedAmount"></b></div>
+
+  <div id="allocationDiffWrap" class="hidden">
+    <div style="font-weight:800;margin:14px 0 6px">AI提案との差分</div>
+    <div id="allocationDiffs"></div>
+  </div>
+
+  <div class="field">
+    <label>変更理由メモ（任意）</label>
+    <textarea id="allocationReason" placeholder="例：今月は飲み会が多いので、お小遣いを少し増やした"
+      style="width:100%;min-height:80px;padding:13px;border:1px solid var(--line);border-radius:15px;background:#fff;color:var(--text)"></textarea>
+  </div>
+
+  <button class="primary" id="applyAllocation" type="button">この振り分けを反映する</button>
+</div>
+</div></div>
+
+<div class="sheetwrap" id="fundSheet"><div class="sheet">
+<div class="sheethead"><h2 id="fundSheetTitle">目的別資金</h2><button class="close" data-close="fundSheet">×</button></div>
+<input id="fundEditIndex" type="hidden">
+<div class="field"><label>名前</label><input id="fundName" placeholder="例：旅行費"></div>
+<div class="field"><label>現在残高</label><input id="fundBalance" type="number" min="0" inputmode="numeric"></div>
+<div class="field"><label>目標額（任意）</label><input id="fundTarget" type="number" min="0" inputmode="numeric"></div>
+<div class="field"><label>期限（任意）</label><input id="fundDeadline" type="date"></div>
+<button class="primary" id="saveFund" type="button">保存</button>
+<button class="icon dangerbtn hidden" id="deleteFund" type="button" style="width:100%;margin-top:8px">この目的別資金を削除</button>
+</div></div>
+
+<div class="sheetwrap" id="fundExpenseSheet"><div class="sheet">
+<div class="sheethead"><h2>目的別資金から支出</h2><button class="close" data-close="fundExpenseSheet">×</button></div>
+<input id="fundExpenseIndex" type="hidden">
+<div class="setup-note" id="fundExpenseLabel"></div>
+<div class="field"><label>金額</label><input id="fundExpenseAmount" type="number" min="1" inputmode="numeric"></div>
+<div class="field"><label>内容</label><input id="fundExpenseMemo" placeholder="例：レンタカー"></div>
+<div class="field"><label>日付</label><input id="fundExpenseDate" type="date"></div>
+<button class="primary" id="saveFundExpense" type="button">確認して記録</button>
+</div></div>
+
+<div class="sheetwrap" id="eventSheet"><div class="sheet">
+<div class="sheethead"><h2>予定を追加</h2><button class="close" data-close="eventSheet">×</button></div>
+<div class="field"><label>日付</label><input id="eventDate" type="date"></div>
+<div class="field"><label>予定名</label><input id="eventTitle" placeholder="例：旅行、給料日、定期券更新"></div>
+<div class="field"><label>金額（任意）</label><input id="eventAmount" type="number" min="0" inputmode="numeric" placeholder="例：50000"></div>
+<div class="field"><label>カテゴリ</label>
+<select id="eventCategory"><option>予定</option><option>旅行費</option><option>定期券</option><option>給料</option><option>その他</option></select>
+</div>
+<button class="primary" id="saveEvent" type="button">予定を保存</button>
+</div></div>
+
+<div class="sheetwrap" id="setupSheet"><div class="sheet">
+<div class="sheethead"><h2>実データの初期設定</h2><button class="close" data-close="setupSheet">×</button></div>
+<div class="setup-note">ここで入力した数字が「お金コンパス」の基準になります。<br><b>今は「食費・日用品」と「お小遣い」の管理残高を中心に使います。</b>銀行口座そのものの残高は管理しません。</div>
+
+<div style="font-weight:800;margin:14px 0 6px">今月使っていいお金</div>
+<div class="editgrid">
+  <div class="field"><label>食費・日用品 残高</label><input id="setupFood" type="number" min="0" inputmode="numeric" placeholder="例 30650"></div>
+  <div class="field"><label>お小遣い 残高</label><input id="setupPocket" type="number" min="0" inputmode="numeric" placeholder="例 14500"></div>
+</div>
+
+<div class="setup-note">支払元は支出履歴のメモとしてだけ残します。銀行口座の残高管理はしません。</div>
+<div style="font-weight:800;margin:16px 0 6px">目的別資金</div>
+<div class="small">金額・目標・期限はあとから何度でも変更できます。</div>
+
+<div class="field"><label>旅行費：現在残高</label><input id="setupTripBal" type="number" min="0" inputmode="numeric"></div>
+<div class="editgrid">
+  <div class="field"><label>旅行費：目標</label><input id="setupTripTarget" type="number" min="0" inputmode="numeric"></div>
+  <div class="field"><label>旅行費：期限</label><input id="setupTripDeadline" type="date"></div>
+</div>
+
+<div class="field"><label>定期券：現在残高</label><input id="setupPassBal" type="number" min="0" inputmode="numeric"></div>
+<div class="editgrid">
+  <div class="field"><label>定期券：目標</label><input id="setupPassTarget" type="number" min="0" inputmode="numeric"></div>
+  <div class="field"><label>定期券：期限</label><input id="setupPassDeadline" type="date"></div>
+</div>
+
+<div class="field"><label>生活防衛資金：現在残高</label><input id="setupEmergencyBal" type="number" min="0" inputmode="numeric"></div>
+<div class="editgrid">
+  <div class="field"><label>生活防衛資金：目標</label><input id="setupEmergencyTarget" type="number" min="0" inputmode="numeric"></div>
+  <div class="field"><label>生活防衛資金：期限</label><input id="setupEmergencyDeadline" type="date"></div>
+</div>
+
+<div class="field"><label>同棲資金：現在残高</label><input id="setupCohabitBal" type="number" min="0" inputmode="numeric"></div>
+<div class="editgrid">
+  <div class="field"><label>同棲資金：目標</label><input id="setupCohabitTarget" type="number" min="0" inputmode="numeric"></div>
+  <div class="field"><label>同棲資金：期限</label><input id="setupCohabitDeadline" type="date"></div>
+</div>
+
+<div class="field"><label><input type="checkbox" id="setupClearOld" checked style="width:auto"> v0.2の仮支出履歴を削除して、ここから実運用を始める</label></div>
+<button class="primary" id="saveSetup" type="button">この内容で実運用を開始</button>
+</div></div>
+
+<script>
+const yen=n=>new Intl.NumberFormat("ja-JP",{style:"currency",currency:"JPY",maximumFractionDigits:0}).format(n);
+const today=()=>new Date().toISOString().slice(0,10);
+const emptyState={
+  version:"0.9",
+  configured:false,
+  cycleStartDay:25,
+  balances:{food:0,pocket:0},
+  sources:{
+    "au PAY":null,
+    "V NEOBANK 代表口座 / デビット":null,
+    "楽天銀行":null,
+    "現金・その他":null
+  },
+  funds:[
+    {name:"旅行費",balance:0,target:0,deadline:""},
+    {name:"定期券",balance:0,target:54310,deadline:""},
+    {name:"生活防衛資金",balance:0,target:300000,deadline:""},
+    {name:"同棲資金",balance:0,target:1000000,deadline:""}
+  ],
+  events:[],
+  transactions:[]
+};
+const legacy=JSON.parse(localStorage.getItem("moneyCompassState")||"null");
+let state=legacy||JSON.parse(JSON.stringify(emptyState));
+if(!state.allocationHistory) state.allocationHistory=[];
+if(!state.version){
+  state.version="0.2";
+  state.configured=false;
+}
+const save=()=>localStorage.setItem("moneyCompassState",JSON.stringify(state));
+const spent=c=>state.transactions.filter(t=>t.category===c).reduce((s,t)=>s+t.amount,0);
+const food=()=>Math.max(0,Number(state.balances.food||0));
+const pocket=()=>Math.max(0,Number(state.balances.pocket||0));
+const fund=n=>state.funds.find(f=>f.name===n);
+function fundHTML(f){const target=Number(f.target||0);const p=target>0?Math.min(100,Math.round(Number(f.balance||0)/target*100)):0;const meta=target>0?`${yen(Number(f.balance||0))} / ${yen(target)}${f.deadline?` ・ ${f.deadline}`:""}`:`現在 ${yen(Number(f.balance||0))} ・ 目標未設定`;return `<div class="fund"><div class="row"><div><b>${f.name}</b><div class="small">${meta}</div></div><b>${target>0?p+"%":"—"}</b></div><div class="progress"><span style="width:${p}%"></span></div></div>`}
+function render(){
+document.getElementById("cycle").textContent="給料サイクル 25日〜24日";
+const pass=fund("定期券");
+if(!state.configured){
+  document.getElementById("message").innerHTML=`<strong>実運用の準備をしよう😊</strong>設定から現在の残高を入力すると、ここがあなた専用の数字になるよ。`;
+}else if(pass && Number(pass.target||0)>0){
+  document.getElementById("message").innerHTML=`<strong>今日も確認していこう😊</strong>定期券はあと${yen(Math.max(0,Number(pass.target||0)-Number(pass.balance||0)))}。`;
+}else{
+  document.getElementById("message").innerHTML=`<strong>おかえり😊</strong>今日も使っていいお金を確認していこう。`;
+}
+document.getElementById("food").textContent=yen(food());document.getElementById("pocket").textContent=yen(pocket());document.getElementById("spendable").textContent=yen(food()+pocket());
+document.getElementById("funds").innerHTML=state.funds.slice(0,3).map(fundHTML).join("");
+document.getElementById("accountFood").textContent=yen(food());
+document.getElementById("accountPocket").textContent=yen(pocket());
+document.getElementById("allFunds").innerHTML=state.funds.length?state.funds.map((f,i)=>{
+const target=Number(f.target||0),bal=Number(f.balance||0);
+const p=target>0?Math.min(100,Math.round(bal/target*100)):0;
+return `<div class="account-card">
+<div class="account-head"><div><b>${f.name}</b><div class="small">${target>0?`${yen(bal)} / ${yen(target)}`:`現在 ${yen(bal)}`}${f.deadline?` ・ ${f.deadline}`:""}</div></div><span class="pill">${target>0?p+"%":"目標未設定"}</span></div>
+${target>0?`<div class="progress"><span style="width:${p}%"></span></div>`:""}
+<div class="account-actions"><button class="icon" onclick="openFundExpense(${i})">この資金から支出</button><button class="icon" onclick="editFund(${i})">編集</button></div>
+</div>`;
+}).join(""):`<div class="card small">目的別資金はまだありません。</div>`;
+document.getElementById("events").innerHTML=state.events.length?state.events.map(e=>`<div class="fund row"><div><b>${e.title}</b><div class="small">${e.date} ・ ${e.category}</div></div><b>${yen(e.amount)}</b></div>`).join(""):`<div class="small">予定はまだ登録されていません。</div>`;
+document.getElementById("txns").innerHTML=state.transactions.length?[...state.transactions].reverse().slice(0,5).map(t=>`<div class="txn row"><div><b>${t.memo||t.category}</b><div class="small">${t.date} ・ ${t.category} ・ ${t.source} ・ ${t.inputMethod}</div></div><div class="negative">-${yen(t.amount)}</div></div>`).join(""):`<div class="small">ここから実際の支出を記録していこう。</div>`;
+const total=state.transactions.filter(t=>t.kind!=="income").reduce((s,t)=>s+t.amount,0);document.getElementById("reportCard").innerHTML=`<h3>期間内の支出</h3><div class="amount">${yen(total)}</div><div class="small">${state.transactions.length}件を記録</div>`;
+}
+function openS(id){document.getElementById(id).classList.add("open")}function closeS(id){document.getElementById(id).classList.remove("open")}
+document.getElementById("expenseBtn").onclick=()=>openS("expenseSheet");document.getElementById("expenseBtn2").onclick=()=>openS("expenseSheet");document.getElementById("aiBtn").onclick=()=>openS("aiSheet");
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeS(b.dataset.close));
+document.getElementById("date").value=today();
+document.getElementById("expenseForm").onsubmit=e=>{e.preventDefault();const amount=Number(document.getElementById("amount").value),category=document.getElementById("category").value,source=document.getElementById("source").value,memo=document.getElementById("memo").value,date=document.getElementById("date").value||today();if(!confirm(`${source}から${category}として${yen(amount)}を記録しますか？`))return;state.transactions.push({id:Date.now()+"",date,amount,category,source,memo,inputMethod:"app"});
+if(category==="食費・日用品") state.balances.food=Math.max(0,Number(state.balances.food||0)-amount);
+else if(category==="お小遣い") state.balances.pocket=Math.max(0,Number(state.balances.pocket||0)-amount);
+else {
+  const f=state.funds.find(x=>x.name===category);
+  if(f) f.balance=Math.max(0,Number(f.balance||0)-amount);
+}
+save();render();e.target.reset();document.getElementById("date").value=today();closeS("expenseSheet")};
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  const now=new Date(); now.setHours(0,0,0,0);
+  const target=new Date(dateStr+"T00:00:00");
+  return Math.ceil((target-now)/86400000);
+}
+
+function extractYenAmount(text){
+  const normalized=(text||"").replace(/,/g,"").replace(/[０-９]/g,s=>String.fromCharCode(s.charCodeAt(0)-0xFEE0));
+  const man=normalized.match(/(\d+(?:\.\d+)?)\s*万\s*円?/);
+  if(man) return Math.round(Number(man[1])*10000);
+  const yenMatch=normalized.match(/(\d{1,9})\s*円/);
+  return yenMatch?Number(yenMatch[1]):null;
+}
+function detectSpendingBucket(text){
+  if(/お小遣い|こづかい|自由費|趣味|娯楽/.test(text)) return "お小遣い";
+  if(/ランチ|昼(ごはん|飯|食)|朝(ごはん|飯|食)|夕(ごはん|飯|食)|ご飯|ごはん|食事|食費|スーパー|コンビニ|日用品|外食/.test(text)) return "食費・日用品";
+  return null;
+}
+function ruleBasedAnswer(q){
+  const text=(q||"").trim();
+  const trip=fund("旅行費"), pass=fund("定期券");
+  const totalSpent=state.transactions.filter(t=>t.kind!=="income").reduce((s,t)=>s+t.amount,0);
+  const amount=extractYenAmount(text);
+  const bucket=detectSpendingBucket(text);
+
+  // Hypothetical spending arithmetic: e.g. "5000円のランチを食べたらあといくら？"
+  if(amount!==null && /(使|払|買|食べ|ランチ|外食|したら|すると)/.test(text) && /(あと|残|いくら|どうなる)/.test(text)){
+    if(bucket==="食費・日用品"){
+      const afterFood=Math.max(0,food()-amount);
+      const afterTotal=Math.max(0,food()+pocket()-amount);
+      return {handled:true, answer:`${yen(amount)}を食費・日用品から使う想定なら、食費・日用品は ${yen(food())} → ${yen(afterFood)}。\n今月あと使える金額は ${yen(food()+pocket())} → ${yen(afterTotal)} になるよ。\nこれは試算だけで、残高は変更していないよ。`};
+    }
+    if(bucket==="お小遣い"){
+      const afterPocket=Math.max(0,pocket()-amount);
+      const afterTotal=Math.max(0,food()+pocket()-amount);
+      return {handled:true, answer:`${yen(amount)}をお小遣いから使う想定なら、お小遣いは ${yen(pocket())} → ${yen(afterPocket)}。\n今月あと使える金額は ${yen(food()+pocket())} → ${yen(afterTotal)} になるよ。\nこれは試算だけで、残高は変更していないよ。`};
+    }
+    return {handled:true, answer:`${yen(amount)}使うと、今月あと使える金額は ${yen(food()+pocket())} → ${yen(Math.max(0,food()+pocket()-amount))} になるよ。\nただ、食費・日用品とお小遣いのどちらから出すかで個別残高が変わるから、必要なら「食費から」「お小遣いから」と付けて聞いてね。\nこれは試算だけで、残高は変更していないよ。`};
+  }
+
+  if(/(今月|あと).*(使える|残り)|使える.*(金額|お金)/.test(text)){
+    return {handled:true, answer:`今月あと使える金額は ${yen(food()+pocket())} だよ。\n食費・日用品が ${yen(food())}、お小遣いが ${yen(pocket())} 残っているよ。`};
+  }
+
+  if(/食費/.test(text) && /(残|いくら|使える|状況)/.test(text)){
+    return {handled:true, answer:`食費・日用品はあと ${yen(food())} だよ。\nこのデータ内の食費・日用品の支出記録は ${yen(spent("食費・日用品"))}。`};
+  }
+
+  if(/お小遣い|こづかい/.test(text) && /(残|いくら|使える|状況)/.test(text)){
+    return {handled:true, answer:`お小遣いはあと ${yen(pocket())} だよ。\nこのデータ内のお小遣い支出は ${yen(spent("お小遣い"))}。`};
+  }
+
+  if(/旅行/.test(text) && /(足り|不足|残|いくら|期限|あと)/.test(text) && trip){
+    const bal=Number(trip.balance||0), target=Number(trip.target||0);
+    const shortage=Math.max(0,target-bal);
+    const days=daysUntil(trip.deadline);
+    let msg=`旅行費は現在 ${yen(bal)}。`;
+    if(target>0) msg+=`\n目標 ${yen(target)} まであと ${yen(shortage)}。`;
+    if(days!==null) msg+=`\n期限まで約 ${Math.max(0,days)} 日だよ。`;
+    return {handled:true, answer:msg};
+  }
+
+  if(/定期券/.test(text) && /(足り|不足|残|いくら|期限|あと|間に合)/.test(text) && pass){
+    const bal=Number(pass.balance||0), target=Number(pass.target||0);
+    const shortage=Math.max(0,target-bal);
+    const days=daysUntil(pass.deadline);
+    let msg=`定期券は現在 ${yen(bal)}。`;
+    if(target>0) msg+=`\n必要額 ${yen(target)} まであと ${yen(shortage)}。`;
+    if(days!==null) msg+=`\n期限まで約 ${Math.max(0,days)} 日だよ。`;
+    return {handled:true, answer:msg};
+  }
+
+  if(/支出/.test(text) && /(合計|状況|いくら|何件)/.test(text)){
+    return {handled:true, answer:`このデータでは支出を ${state.transactions.length} 件、合計 ${yen(totalSpent)} 記録しているよ。\n食費・日用品は ${yen(spent("食費・日用品"))}、お小遣いは ${yen(spent("お小遣い"))}。`};
+  }
+
+  return {
+    handled:false,
+    reason:"この質問は、単純な残高計算だけではなく、優先順位や今後の予定まで考える必要がありそう。現在の家計データを付けてChatGPTに引き継ぐね。"
+  };
+}
+
+function buildConsultText(question){
+  const totalSpent=state.transactions.filter(t=>t.kind!=="income").reduce((s,t)=>s+t.amount,0);
+  const fundsText=state.funds.map(f=>{
+    const shortage=Math.max(0,Number(f.target||0)-Number(f.balance||0));
+    return `- ${f.name}: 現在 ${yen(Number(f.balance||0))} / 目標 ${yen(Number(f.target||0))} / 不足 ${yen(shortage)} / 期限 ${f.deadline||"未設定"}`;
+  }).join("\n");
+
+  const recent=[...state.transactions].reverse().slice(0,10).map(t=>
+    `- ${t.date} ${t.memo||"(メモなし)"} / ${t.category} / ${yen(t.amount)} / 支払元:${t.source}`
+  ).join("\n") || "- なし";
+
+  return `あなたは私の個人用お金管理AI「コンパス」です。
+次の家計データを前提に、相談へ答えてください。
+
+【参照ルール】
+- このChatGPTプロジェクト内に最新の金融プロフィールがある場合は、それも参照してください。
+- ただし、残高・支出・目的別資金など変動する数値は、以下のお金コンパスのデータを最新値として優先してください。
+
+【絶対ルール】
+- 勝手に残高を変更したことにしない。
+- 資金移動や配分は必ず「提案」として示し、最終判断は私に委ねる。
+- 責めたり不安を煽ったりせず、具体的な金額を使って説明する。
+- 「貯めること」と「生活や旅行を楽しむこと」の両立を重視する。
+- データだけでは判断できない点は推測で断定せず確認する。
+
+【現在の家計状況】
+給料サイクル: 25日〜24日
+食費・日用品の残り: ${yen(food())}
+お小遣いの残り: ${yen(pocket())}
+今月あと使える金額: ${yen(food()+pocket())}
+このデータ内の支出合計: ${yen(totalSpent)}
+
+【目的別資金】
+${fundsText}
+
+【最近の支出 最大10件】
+${recent}
+
+【今回相談したいこと】
+${question || "現在の家計状況を見て、気になる点とおすすめの次の行動を教えて。"}
+
+回答は、
+1. 結論
+2. 数字の根拠
+3. おすすめ案
+4. 私が決めるべきこと
+の順で、読みやすく答えてください。`;
+}
+
+let latestCompassQuestion="";
+
+document.getElementById("askCompass").onclick=()=>{
+  const q=document.getElementById("compassQuestion").value.trim();
+  if(!q) return;
+  latestCompassQuestion=q;
+
+  const result=ruleBasedAnswer(q);
+  const answerWrap=document.getElementById("compassAnswerWrap");
+  const answer=document.getElementById("compassAnswer");
+  const handoff=document.getElementById("chatgptHandoff");
+  const consultArea=document.getElementById("consultArea");
+
+  consultArea.classList.add("hidden");
+
+  if(result.handled){
+    answer.textContent=result.answer;
+    answerWrap.classList.remove("hidden");
+    handoff.classList.add("hidden");
+  }else{
+    answer.textContent="この質問はChatGPTに引き継いだ方がよさそう。";
+    answerWrap.classList.remove("hidden");
+    document.getElementById("handoffReason").textContent=result.reason;
+    handoff.classList.remove("hidden");
+  }
+};
+
+document.getElementById("makeConsultText").onclick=()=>{
+  const q=latestCompassQuestion || document.getElementById("compassQuestion").value.trim();
+  document.getElementById("consultText").value=buildConsultText(q);
+  document.getElementById("consultArea").classList.remove("hidden");
+};
+
+async function copyConsult(openChatGPT){
+  const text=document.getElementById("consultText").value;
+  if(!text)return;
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch{
+    const ta=document.getElementById("consultText");
+    ta.focus(); ta.select();
+    document.execCommand("copy");
+  }
+  alert("相談用テキストをコピーしたよ。ChatGPTで貼り付けて送信してね。");
+  if(openChatGPT) window.open("https://chatgpt.com/","_blank");
+}
+
+document.getElementById("copyConsult").onclick=()=>copyConsult(true);
+document.getElementById("copyOnly").onclick=()=>copyConsult(false);
+
+
+
+function allocationPriority(f){
+  const target=Number(f.target||0),bal=Number(f.balance||0);
+  return {shortage:Math.max(0,target-bal),days:f.deadline?daysUntil(f.deadline):99999};
+}
+function allAllocationDestinations(){
+  return [
+    {type:"food",name:"食費・日用品"},
+    {type:"pocket",name:"お小遣い"},
+    ...state.funds.map((f,i)=>({type:"fund",index:i,name:f.name}))
+  ];
+}
+function buildSimpleAllocationSuggestion(amount){
+  let remaining=amount,result=[];
+  const funds=state.funds.map((f,i)=>({...allocationPriority(f),index:i,name:f.name}))
+    .filter(x=>x.shortage>0).sort((a,b)=>(a.days-b.days)||(a.shortage-b.shortage));
+  funds.forEach(x=>{
+    if(remaining<=0)return;
+    const v=Math.min(x.shortage,remaining);
+    result.push({type:"fund",index:x.index,name:x.name,amount:v});remaining-=v;
+  });
+  return result;
+}
+function renderAllocationRows(items,total){
+  const area=document.getElementById("allocationRows");
+  const map=new Map(items.map(x=>[`${x.type}:${x.index??""}`,Number(x.amount||0)]));
+  area.innerHTML=allAllocationDestinations().map(x=>{
+    const value=map.get(`${x.type}:${x.index??""}`)??0;
+    return `<div class="alloc-row"><div><b>${x.name}</b><div class="mini">${x.type==="fund"?"目的別資金":"普段使い"}</div></div>
+    <input class="alloc-input" type="number" min="0" inputmode="numeric" value="${value}" data-type="${x.type}" data-index="${x.index??""}"></div>`;
+  }).join("");
+  const recalc=()=>{
+    const used=[...area.querySelectorAll("input")].reduce((s,x)=>s+Number(x.value||0),0);
+    const remain=total-used;
+    document.getElementById("unallocatedAmount").textContent=yen(remain);
+    document.getElementById("unallocatedAmount").classList.toggle("negative",remain<0);
+  };
+  area.querySelectorAll("input").forEach(x=>{x.readOnly=false;x.disabled=false;x.oninput=recalc;x.onchange=recalc;});
+  recalc();
+}
+
+function buildIncomeConsultText(amount,memo){
+  const fundsText=state.funds.map(f=>{
+    const target=Number(f.target||0),bal=Number(f.balance||0);
+    return `- ${f.name}: 現在 ${yen(bal)} / 目標 ${target?yen(target):"未設定"} / 不足 ${target?yen(Math.max(0,target-bal)):"未設定"} / 期限 ${f.deadline||"未設定"}`;
+  }).join("\n")||"- なし";
+
+  const allowedNames=["食費・日用品","お小遣い",...state.funds.map(f=>f.name)];
+
+  return `あなたは私の個人用お金管理AI「コンパス」です。
+今回入ったお金の振り分け案を考えてください。
+
+【参照ルール】
+- このChatGPTプロジェクトに最新の金融プロフィールがある場合は参照してください。
+- ただし、以下のお金コンパスの残高を最新値として優先してください。
+
+【絶対ルール】
+- 勝手に残高を変更したことにしない。
+- 振り分けは必ず「提案」として示す。
+- 貯めることと生活を楽しむことの両立を重視する。
+- 期限、不足額、現在の普段使い残高、今後の予定を踏まえる。
+- データ不足なら推測で断定しない。
+- 振り分け合計は今回の入金額を超えない。
+
+【今回入ったお金】
+${yen(amount)}
+メモ: ${memo||"なし"}
+
+【現在の普段使い残高】
+- 食費・日用品: ${yen(food())}
+- お小遣い: ${yen(pocket())}
+
+【目的別資金】
+${fundsText}
+
+【最近の振り分け判断 最大3件】
+${(state.allocationHistory||[]).slice(-3).reverse().map(h=>{
+  const proposal=Object.entries(h.aiProposal||{}).map(([k,v])=>`${k}:${yen(v)}`).join(" / ")||"なし";
+  const final=Object.entries(h.finalAllocation||{}).map(([k,v])=>`${k}:${yen(v)}`).join(" / ")||"なし";
+  return `- ${h.date} / AI提案: ${proposal} / 実際の確定: ${final}${h.reason?` / 理由: ${h.reason}`:""}`;
+}).join("\n")||"- なし"}
+
+【今回使える振り分け先】
+${allowedNames.map(x=>"- "+x).join("\n")}
+
+【依頼】
+まず振り分け理由を3〜6行程度で簡潔に説明してください。
+
+そのあと、回答の最後に必ず次の形式のブロックを1つだけ付けてください。
+金額は半角数字だけで、カンマや「円」は付けないでください。
+振り分けない項目も 0 としてください。
+このブロック内の項目名は、上の「今回使える振り分け先」と完全一致させてください。
+
+===OKANE_COMPASS_ALLOCATION===
+食費・日用品=0
+お小遣い=0
+${state.funds.map(f=>`${f.name}=0`).join("\n")}
+未振り分け=0
+===END_OKANE_COMPASS_ALLOCATION===`;
+}
+
+function parseAllocationResponse(text,total){
+  const startMark="===OKANE_COMPASS_ALLOCATION===";
+  const endMark="===END_OKANE_COMPASS_ALLOCATION===";
+  const s=text.indexOf(startMark),e=text.indexOf(endMark);
+  if(s<0||e<0||e<=s){
+    return {ok:false,error:"振り分けブロックが見つからなかったよ。ChatGPTの回答全文を貼り付けたか確認してね。"};
+  }
+
+  const block=text.slice(s+startMark.length,e).trim();
+  const lines=block.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const allowed=new Map([
+    ["食費・日用品",{type:"food",name:"食費・日用品"}],
+    ["お小遣い",{type:"pocket",name:"お小遣い"}],
+    ...state.funds.map((f,i)=>[f.name,{type:"fund",index:i,name:f.name}])
+  ]);
+
+  const parsed=[];
+  let declaredUnallocated=null;
+  const unknown=[];
+
+  for(const line of lines){
+    const m=line.match(/^(.+?)\s*=\s*([0-9]+)$/);
+    if(!m) continue;
+    const name=m[1].trim(),amount=Number(m[2]);
+    if(name==="未振り分け"){
+      declaredUnallocated=amount;
+      continue;
+    }
+    const dest=allowed.get(name);
+    if(!dest){
+      unknown.push(name);
+      continue;
+    }
+    parsed.push({...dest,amount});
+  }
+
+  if(parsed.length===0){
+    return {ok:false,error:"読み込める振り分け項目がなかったよ。"};
+  }
+
+  const sum=parsed.reduce((s,x)=>s+x.amount,0);
+  if(sum>total){
+    return {ok:false,error:`提案合計 ${yen(sum)} が入金額 ${yen(total)} を超えているよ。`};
+  }
+
+  const byKey=new Map(parsed.map(x=>[`${x.type}:${x.index??""}`,x]));
+  const items=allAllocationDestinations().map(x=>{
+    const found=byKey.get(`${x.type}:${x.index??""}`);
+    return {...x,amount:found?found.amount:0};
+  });
+
+  return {
+    ok:true,
+    items,
+    sum,
+    calculatedUnallocated:total-sum,
+    declaredUnallocated,
+    unknown
+  };
+}
+
+
+let currentAiProposalItems=[];
+
+function allocationItemsToObject(items){
+  const obj={};
+  items.forEach(x=>{obj[x.name]=Number(x.amount||0);});
+  return obj;
+}
+function currentAllocationObject(){
+  const obj={};
+  [...document.querySelectorAll("#allocationRows input")].forEach(x=>{
+    const name=x.closest(".alloc-row").querySelector("b").textContent;
+    obj[name]=Number(x.value||0);
+  });
+  return obj;
+}
+function renderAllocationDiffs(){
+  if(!currentAiProposalItems.length){
+    document.getElementById("allocationDiffWrap").classList.add("hidden");
+    return;
+  }
+  const proposal=allocationItemsToObject(currentAiProposalItems);
+  const final=currentAllocationObject();
+  const names=[...new Set([...Object.keys(proposal),...Object.keys(final)])];
+  const changed=names.map(name=>({
+    name,
+    before:Number(proposal[name]||0),
+    after:Number(final[name]||0)
+  })).filter(x=>x.before!==x.after);
+
+  const wrap=document.getElementById("allocationDiffWrap");
+  const area=document.getElementById("allocationDiffs");
+  if(!changed.length){
+    wrap.classList.add("hidden");
+    return;
+  }
+  area.innerHTML=changed.map(x=>{
+    const diff=x.after-x.before;
+    const sign=diff>0?"+":"";
+    return `<div class="proposal-compare">
+      <div><b>${x.name}</b></div>
+      <div class="muted">${yen(x.before)} → ${yen(x.after)}</div>
+      <div class="${diff>=0?"diff-up":"diff-down"}">${sign}${yen(diff)}</div>
+    </div>`;
+  }).join("");
+  wrap.classList.remove("hidden");
+}
+function attachDiffListeners(){
+  document.querySelectorAll("#allocationRows input").forEach(x=>{
+    const prev=x.oninput;
+    x.addEventListener("input",()=>{
+      if(typeof prev==="function") prev();
+      renderAllocationDiffs();
+    });
+    x.addEventListener("change",renderAllocationDiffs);
+  });
+}
+
+
+function renderAllocationHistory(){
+  const list=document.getElementById("allocationHistoryList");
+  const hist=[...(state.allocationHistory||[])].reverse();
+  if(!hist.length){
+    list.innerHTML=`<div class="small">まだ履歴はありません。</div>`;
+    return;
+  }
+  list.innerHTML=hist.map(h=>{
+    const proposal=Object.entries(h.aiProposal||{}).map(([k,v])=>`${k} ${yen(v)}`).join("<br>")||"なし";
+    const final=Object.entries(h.finalAllocation||{}).map(([k,v])=>`${k} ${yen(v)}`).join("<br>")||"なし";
+    return `<div class="history-card">
+      <b>${h.date} ・ ${h.memo||"収入"} ${yen(Number(h.incomeAmount||0))}</b>
+      <div class="small" style="margin-top:8px"><b>AI提案</b><br>${proposal}</div>
+      <div class="small" style="margin-top:8px"><b>実際の確定</b><br>${final}</div>
+      ${h.reason?`<div class="small" style="margin-top:8px"><b>変更理由</b><br>${h.reason}</div>`:""}
+    </div>`;
+  }).join("");
+}
+const showAllocationHistoryBtn=document.getElementById("showAllocationHistory");
+if(showAllocationHistoryBtn){
+  showAllocationHistoryBtn.onclick=()=>{renderAllocationHistory();openS("historySheet");};
+}
+
+
+function applyParsedAllocationResult(result,total){
+  const status=document.getElementById("incomeImportStatus");
+
+  if(!result.ok){
+    status.className="import-warn";
+    status.textContent=result.error;
+    return false;
+  }
+
+  currentAiProposalItems=result.items.map(x=>({...x}));
+  renderAllocationRows(result.items,total);
+  attachDiffListeners();
+  renderAllocationDiffs();
+  document.getElementById("allocationArea").classList.remove("hidden");
+
+  const warnings=[];
+  if(result.declaredUnallocated!==null && result.declaredUnallocated!==result.calculatedUnallocated){
+    warnings.push(`AI記載の未振り分け ${yen(result.declaredUnallocated)} と、計算上の未振り分け ${yen(result.calculatedUnallocated)} が一致していません。計算値を優先しました。`);
+  }
+  if(result.unknown.length){
+    warnings.push(`現在のアプリにない項目は無視しました: ${result.unknown.join("、")}`);
+  }
+
+  status.className=warnings.length?"import-warn":"import-ok";
+  status.innerHTML=warnings.length
+    ? `<b>読み込み完了。ただし確認してね。</b><br>${warnings.join("<br>")}`
+    : `<b>AI提案を読み込んだよ。</b><br>合計 ${yen(result.sum)}、未振り分け ${yen(result.calculatedUnallocated)}。下で自由に修正できます。`;
+
+  return true;
+}
+
+document.getElementById("incomeBtn").onclick=()=>{
+  document.getElementById("incomeAmount").value="";
+  document.getElementById("incomeMemo").value="";
+  document.getElementById("incomeAiResponse").value="";
+  document.getElementById("allocationReason").value="";
+  document.getElementById("incomeAiArea").classList.add("hidden");
+  document.getElementById("allocationArea").classList.add("hidden");
+  document.getElementById("allocationDiffWrap").classList.add("hidden");
+  document.getElementById("incomeAiCommentWrap").classList.add("hidden");
+  document.getElementById("shortcutRunStatus").classList.add("hidden");
+  document.getElementById("incomeImportStatus").className="hidden";
+  currentAiProposalItems=[];
+  openS("incomeSheet");
+};
+
+
+
+const INCOME_SHORTCUT_NAME="お金コンパスAI相談";
+const PENDING_INCOME_KEY="okane_compass_pending_income_v09";
+
+function clearShortcutReturnParams(){
+  try{
+    const u=new URL(window.location.href);
+    u.searchParams.delete("shortcutReturn");
+    u.searchParams.delete("shortcutCanceled");
+    u.searchParams.delete("result");
+    history.replaceState(null,"",u.pathname + (u.searchParams.toString()?`?${u.searchParams.toString()}`:"") + u.hash);
+  }catch{}
+}
+
+function extractAiComment(text){
+  const marker="===OKANE_COMPASS_ALLOCATION===";
+  const idx=text.indexOf(marker);
+  if(idx<0)return "";
+  return text.slice(0,idx)
+    .replace(/^#+\s*/gm,"")
+    .trim()
+    .slice(0,1800);
+}
+
+function showAiComment(text){
+  const comment=extractAiComment(text);
+  const wrap=document.getElementById("incomeAiCommentWrap");
+  if(comment){
+    document.getElementById("incomeAiComment").textContent=comment;
+    wrap.classList.remove("hidden");
+  }else{
+    wrap.classList.add("hidden");
+  }
+}
+
+document.getElementById("runIncomeShortcut").onclick=()=>{
+  const amount=Number(document.getElementById("incomeAmount").value||0);
+  const memo=document.getElementById("incomeMemo").value.trim();
+
+  if(amount<=0){
+    alert("入ってきた金額を入力してね。");
+    return;
+  }
+
+  const consultText=buildIncomeConsultText(amount,memo);
+
+  // Keep the current consultation context so it can be restored after Shortcuts returns.
+  localStorage.setItem(PENDING_INCOME_KEY,JSON.stringify({
+    amount,
+    memo,
+    startedAt:Date.now()
+  }));
+
+  // Prepare manual fallback too, but normal flow does not use clipboard.
+  document.getElementById("incomeConsultText").value=consultText;
+
+  const status=document.getElementById("shortcutRunStatus");
+  status.textContent="コンパスが振り分けを考えています。AI回答後、自動でこの画面へ戻ります…";
+  status.classList.remove("hidden");
+
+  // Apple Shortcuts x-callback-url:
+  // - pass consultation directly as text (no clipboard/paste permission)
+  // - return final Shortcut output in ?result=
+  const callback=new URL(window.location.href);
+  callback.search="";
+  callback.hash="";
+  callback.searchParams.set("shortcutReturn","income");
+
+  const cancelCallback=new URL(window.location.href);
+  cancelCallback.search="";
+  cancelCallback.hash="";
+  cancelCallback.searchParams.set("shortcutCanceled","income");
+
+  const shortcutUrl=
+    `shortcuts://x-callback-url/run-shortcut` +
+    `?name=${encodeURIComponent(INCOME_SHORTCUT_NAME)}` +
+    `&input=text` +
+    `&text=${encodeURIComponent(consultText)}` +
+    `&x-success=${encodeURIComponent(callback.toString())}` +
+    `&x-cancel=${encodeURIComponent(cancelCallback.toString())}`;
+
+  window.location.href=shortcutUrl;
+};
+
+function handleIncomeShortcutReturn(){
+  const params=new URLSearchParams(window.location.search);
+  const isReturn=params.get("shortcutReturn")==="income";
+  const isCanceled=params.get("shortcutCanceled")==="income";
+  if(!isReturn && !isCanceled)return;
+
+  let pending=null;
+  try{
+    pending=JSON.parse(localStorage.getItem(PENDING_INCOME_KEY)||"null");
+  }catch{}
+
+  // Open account tab and income sheet automatically.
+  const accountTab=document.querySelector('.nav button[data-view="accounts"]');
+  if(accountTab)accountTab.click();
+
+  if(pending){
+    document.getElementById("incomeAmount").value=Number(pending.amount||0)||"";
+    document.getElementById("incomeMemo").value=pending.memo||"";
+  }
+  document.getElementById("incomeAiArea").classList.add("hidden");
+  document.getElementById("allocationReason").value="";
+  openS("incomeSheet");
+
+  const status=document.getElementById("shortcutRunStatus");
+  status.classList.remove("hidden");
+
+  if(isCanceled){
+    status.textContent="AI相談がキャンセルされました。残高は変更していません。";
+    localStorage.removeItem(PENDING_INCOME_KEY);
+    clearShortcutReturnParams();
+    return;
+  }
+
+  const raw=params.get("result")||"";
+  const total=Number(document.getElementById("incomeAmount").value||0);
+
+  if(!raw || total<=0){
+    status.textContent="AI回答を受け取れませんでした。手動連携を開いて確認してください。";
+    document.getElementById("incomeAiArea").classList.remove("hidden");
+    if(raw)document.getElementById("incomeAiResponse").value=raw;
+    clearShortcutReturnParams();
+    return;
+  }
+
+  const result=parseAllocationResponse(raw,total);
+  const ok=applyParsedAllocationResult(result,total);
+
+  if(ok){
+    status.textContent="AI提案を自動で読み込みました。下の金額は自由に変更できます。";
+    showAiComment(raw);
+    document.getElementById("allocationArea").scrollIntoView({behavior:"smooth",block:"start"});
+    localStorage.removeItem(PENDING_INCOME_KEY);
+  }else{
+    status.textContent="AI回答は受け取りましたが、自動解析できませんでした。手動連携欄に回答を入れました。";
+    document.getElementById("incomeAiArea").classList.remove("hidden");
+    document.getElementById("incomeAiResponse").value=raw;
+  }
+
+  clearShortcutReturnParams();
+}
+
+document.getElementById("incomeAiConsult").onclick=()=>{
+  const amount=Number(document.getElementById("incomeAmount").value||0);
+  if(amount<=0){alert("入ってきた金額を入力してね。");return;}
+  document.getElementById("incomeConsultText").value=buildIncomeConsultText(
+    amount,
+    document.getElementById("incomeMemo").value.trim()
+  );
+  document.getElementById("incomeAiArea").classList.remove("hidden");
+};
+
+document.getElementById("copyIncomeConsult").onclick=async()=>{
+  const text=document.getElementById("incomeConsultText").value;
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch{
+    const ta=document.getElementById("incomeConsultText");
+    ta.focus();ta.select();document.execCommand("copy");
+  }
+  alert("相談テキストをコピーしたよ。ChatGPTで貼り付けて相談してね。");
+  window.open("https://chatgpt.com/","_blank");
+};
+
+document.getElementById("importIncomeResponse").onclick=()=>{
+  const total=Number(document.getElementById("incomeAmount").value||0);
+  const text=document.getElementById("incomeAiResponse").value.trim();
+  const status=document.getElementById("incomeImportStatus");
+
+  if(total<=0){alert("先に入ってきた金額を入力してね。");return;}
+  if(!text){alert("ChatGPTの回答を貼り付けてね。");return;}
+
+  const result=parseAllocationResponse(text,total);
+  applyParsedAllocationResult(result,total);
+};
+
+document.getElementById("applyAllocation").onclick=()=>{
+  const total=Number(document.getElementById("incomeAmount").value||0);
+  const inputs=[...document.querySelectorAll("#allocationRows input")];
+  const used=inputs.reduce((s,x)=>s+Number(x.value||0),0);
+
+  if(used>total){alert("振り分け合計が収入額を超えているよ。");return;}
+
+  if(!confirm(`${yen(total)}のうち${yen(used)}を各残高へ反映します。未振り分けは${yen(total-used)}です。よろしいですか？`)){
+    return;
+  }
+
+  const finalAllocation=currentAllocationObject();
+  const aiProposal=allocationItemsToObject(currentAiProposalItems);
+  const reason=document.getElementById("allocationReason").value.trim();
+
+  inputs.forEach(x=>{
+    const amt=Number(x.value||0);
+    if(amt<=0)return;
+
+    if(x.dataset.type==="food"){
+      state.balances.food=Number(state.balances.food||0)+amt;
+    }else if(x.dataset.type==="pocket"){
+      state.balances.pocket=Number(state.balances.pocket||0)+amt;
+    }else if(x.dataset.type==="fund"){
+      const i=Number(x.dataset.index);
+      if(state.funds[i]){
+        state.funds[i].balance=Number(state.funds[i].balance||0)+amt;
+      }
+    }
+  });
+
+  state.allocationHistory.push({
+    id:"a"+Date.now(),
+    date:today(),
+    incomeAmount:total,
+    memo:document.getElementById("incomeMemo").value.trim()||"収入",
+    aiProposal,
+    finalAllocation,
+    reason
+  });
+  if(state.allocationHistory.length>20){
+    state.allocationHistory=state.allocationHistory.slice(-20);
+  }
+
+  state.transactions.push({
+    id:"i"+Date.now(),
+    date:today(),
+    amount:total,
+    category:"収入",
+    source:"",
+    memo:document.getElementById("incomeMemo").value.trim()||"収入",
+    inputMethod:"app",
+    kind:"income"
+  });
+
+  save();
+  render();
+  closeS("incomeSheet");
+};
+
+document.getElementById("addFundBtn").onclick=()=>{
+  document.getElementById("fundSheetTitle").textContent="目的別資金を追加";
+  document.getElementById("fundEditIndex").value="";
+  document.getElementById("fundName").value="";
+  document.getElementById("fundBalance").value="";
+  document.getElementById("fundTarget").value="";
+  document.getElementById("fundDeadline").value="";
+  document.getElementById("deleteFund").classList.add("hidden");openS("fundSheet");
+};
+window.editFund=i=>{
+  const f=state.funds[i];if(!f)return;
+  document.getElementById("fundSheetTitle").textContent="目的別資金を編集";
+  document.getElementById("fundEditIndex").value=i;document.getElementById("fundName").value=f.name;
+  document.getElementById("fundBalance").value=Number(f.balance||0);document.getElementById("fundTarget").value=Number(f.target||0)||"";
+  document.getElementById("fundDeadline").value=f.deadline||"";document.getElementById("deleteFund").classList.remove("hidden");openS("fundSheet");
+};
+document.getElementById("saveFund").onclick=()=>{
+  const name=document.getElementById("fundName").value.trim();if(!name){alert("名前を入力してね。");return;}
+  const f={name,balance:Number(document.getElementById("fundBalance").value||0),target:Number(document.getElementById("fundTarget").value||0),deadline:document.getElementById("fundDeadline").value||""};
+  const idx=document.getElementById("fundEditIndex").value;if(idx==="")state.funds.push(f);else state.funds[Number(idx)]=f;
+  save();render();closeS("fundSheet");
+};
+document.getElementById("deleteFund").onclick=()=>{
+  const i=Number(document.getElementById("fundEditIndex").value);if(!state.funds[i])return;
+  if(confirm(`${state.funds[i].name}を削除しますか？`)){state.funds.splice(i,1);save();render();closeS("fundSheet");}
+};
+window.openFundExpense=i=>{
+  const f=state.funds[i];if(!f)return;
+  document.getElementById("fundExpenseIndex").value=i;document.getElementById("fundExpenseLabel").innerHTML=`<b>${f.name}</b><br>現在残高 ${yen(Number(f.balance||0))}`;
+  document.getElementById("fundExpenseAmount").value="";document.getElementById("fundExpenseMemo").value="";document.getElementById("fundExpenseDate").value=today();openS("fundExpenseSheet");
+};
+document.getElementById("saveFundExpense").onclick=()=>{
+  const i=Number(document.getElementById("fundExpenseIndex").value),f=state.funds[i];
+  const amount=Number(document.getElementById("fundExpenseAmount").value||0),memo=document.getElementById("fundExpenseMemo").value.trim(),date=document.getElementById("fundExpenseDate").value||today();
+  if(!f||amount<=0)return;if(amount>Number(f.balance||0)){alert("現在残高を超えているよ。");return;}
+  if(!confirm(`${f.name}から${yen(amount)}支出しますか？`))return;
+  f.balance=Number(f.balance||0)-amount;state.transactions.push({id:"f"+Date.now(),date,amount,category:f.name,source:"",memo:memo||`${f.name}から支出`,inputMethod:"app",kind:"expense"});
+  save();render();closeS("fundExpenseSheet");
+};
+
+let calendarCursor=new Date();
+calendarCursor.setDate(1);
+let selectedCalendarDate=today();
+
+function isoDate(y,m,d){
+  return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+}
+function renderCalendar(){
+  const y=calendarCursor.getFullYear(), m=calendarCursor.getMonth();
+  document.getElementById("calendarTitle").textContent=`${y}年 ${m+1}月`;
+  const grid=document.getElementById("calendarGrid");
+  grid.innerHTML="";
+  const firstDay=new Date(y,m,1).getDay();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const prevDays=new Date(y,m,0).getDate();
+  const todayStr=today();
+
+  for(let i=0;i<42;i++){
+    let dayNum, dateStr, muted=false;
+    if(i<firstDay){
+      dayNum=prevDays-firstDay+i+1;
+      const d=new Date(y,m-1,dayNum);
+      dateStr=isoDate(d.getFullYear(),d.getMonth(),d.getDate());
+      muted=true;
+    }else if(i>=firstDay+daysInMonth){
+      dayNum=i-(firstDay+daysInMonth)+1;
+      const d=new Date(y,m+1,dayNum);
+      dateStr=isoDate(d.getFullYear(),d.getMonth(),d.getDate());
+      muted=true;
+    }else{
+      dayNum=i-firstDay+1;
+      dateStr=isoDate(y,m,dayNum);
+    }
+    const btn=document.createElement("button");
+    btn.className="cal-day"+(muted?" muted":"")+(dateStr===todayStr?" today":"")+(dateStr===selectedCalendarDate?" selected":"");
+    btn.textContent=dayNum;
+    btn.dataset.date=dateStr;
+    if(state.events.some(e=>e.date===dateStr)){
+      const dot=document.createElement("span"); dot.className="cal-dot"; btn.appendChild(dot);
+    }
+    btn.onclick=()=>{
+      selectedCalendarDate=dateStr;
+      const d=new Date(dateStr+"T00:00:00");
+      calendarCursor=new Date(d.getFullYear(),d.getMonth(),1);
+      renderCalendar();
+      renderEventsForSelectedDate();
+    };
+    grid.appendChild(btn);
+  }
+  renderEventsForSelectedDate();
+}
+function renderEventsForSelectedDate(){
+  const d=new Date(selectedCalendarDate+"T00:00:00");
+  document.getElementById("eventDateLabel").textContent=`${d.getMonth()+1}月${d.getDate()}日の予定`;
+  const ev=state.events.filter(e=>e.date===selectedCalendarDate);
+  document.getElementById("events").innerHTML=ev.length?ev.map(e=>`<div class="fund row"><div><b>${e.title}</b><div class="small">${e.category||"予定"}</div></div><b>${e.amount?yen(Number(e.amount)):""}</b></div>`).join(""):`<div class="small">この日の予定はありません。</div>`;
+}
+document.getElementById("prevMonth").onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()-1);renderCalendar()};
+document.getElementById("nextMonth").onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()+1);renderCalendar()};
+document.getElementById("todayBtn").onclick=()=>{
+  const d=new Date(); calendarCursor=new Date(d.getFullYear(),d.getMonth(),1); selectedCalendarDate=today(); renderCalendar();
+};
+document.getElementById("addEventBtn").onclick=()=>{
+  document.getElementById("eventDate").value=selectedCalendarDate;
+  document.getElementById("eventTitle").value="";
+  document.getElementById("eventAmount").value="";
+  openS("eventSheet");
+};
+document.getElementById("saveEvent").onclick=()=>{
+  const date=document.getElementById("eventDate").value;
+  const title=document.getElementById("eventTitle").value.trim();
+  const amount=Number(document.getElementById("eventAmount").value||0);
+  const category=document.getElementById("eventCategory").value;
+  if(!date||!title){alert("日付と予定名を入力してね。");return;}
+  state.events.push({id:"e"+Date.now(),date,title,amount,category});
+  save();
+  selectedCalendarDate=date;
+  const d=new Date(date+"T00:00:00");
+  calendarCursor=new Date(d.getFullYear(),d.getMonth(),1);
+  renderCalendar();
+  closeS("eventSheet");
+};
+renderCalendar();
+
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  ["home","accounts","calendar","report","settings"].forEach(v=>document.getElementById(v).classList.toggle("hidden",v!==b.dataset.view));
+  document.getElementById("expenseBtn").style.display=b.dataset.view==="home"?"":"none";
+  if(b.dataset.view==="calendar")renderCalendar();
+});
+document.getElementById("exportBtn").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}));a.download="money-compass-"+today()+".json";a.click()};
+document.getElementById("importBtn").onclick=()=>document.getElementById("file").click();document.getElementById("file").onchange=async e=>{try{state=JSON.parse(await e.target.files[0].text());save();render();alert("読み込みました")}catch{alert("読み込みに失敗しました")}};
+
+function valOrNull(id){
+  const v=document.getElementById(id).value.trim();
+  return v===""?null:Number(v);
+}
+function fundSet(name,balId,targetId,deadlineId){
+  let f=state.funds.find(x=>x.name===name);
+  if(!f){f={name,balance:0,target:0,deadline:""};state.funds.push(f);}
+  f.balance=Number(document.getElementById(balId).value||0);
+  f.target=Number(document.getElementById(targetId).value||0);
+  f.deadline=document.getElementById(deadlineId).value||"";
+}
+function fillSetup(){
+  document.getElementById("setupFood").value=state.configured?Number(state.balances.food||0):"";
+  document.getElementById("setupPocket").value=state.configured?Number(state.balances.pocket||0):"";
+  const mapping=[
+    ["旅行費","setupTripBal","setupTripTarget","setupTripDeadline"],
+    ["定期券","setupPassBal","setupPassTarget","setupPassDeadline"],
+    ["生活防衛資金","setupEmergencyBal","setupEmergencyTarget","setupEmergencyDeadline"],
+    ["同棲資金","setupCohabitBal","setupCohabitTarget","setupCohabitDeadline"]
+  ];
+  mapping.forEach(([name,b,t,d])=>{
+    const f=state.funds.find(x=>x.name===name)||{};
+    document.getElementById(b).value=state.configured?Number(f.balance||0):"";
+    document.getElementById(t).value=Number(f.target||0)||"";
+    document.getElementById(d).value=f.deadline||"";
+  });
+}
+document.getElementById("openSetup").onclick=()=>{fillSetup();openS("setupSheet")};
+document.getElementById("saveSetup").onclick=()=>{
+  const foodVal=Number(document.getElementById("setupFood").value||0);
+  const pocketVal=Number(document.getElementById("setupPocket").value||0);
+  const msg=`食費・日用品 ${yen(foodVal)}、お小遣い ${yen(pocketVal)} を現在の管理残高として設定します。よろしいですか？`;
+  if(!confirm(msg)) return;
+  state.version="0.9";
+  state.balances={food:foodVal,pocket:pocketVal};
+  fundSet("旅行費","setupTripBal","setupTripTarget","setupTripDeadline");
+  fundSet("定期券","setupPassBal","setupPassTarget","setupPassDeadline");
+  fundSet("生活防衛資金","setupEmergencyBal","setupEmergencyTarget","setupEmergencyDeadline");
+  fundSet("同棲資金","setupCohabitBal","setupCohabitTarget","setupCohabitDeadline");
+  if(document.getElementById("setupClearOld").checked) state.transactions=[];
+  state.configured=true;
+  save();render();closeS("setupSheet");
+  alert("実データ運用を開始したよ。ここから入力した支出だけが残高に反映されます。");
+};
+document.getElementById("clearTxBtn").onclick=()=>{
+  if(confirm("支出履歴だけを全消去しますか？ 管理残高は変更しません。")){
+    state.transactions=[];save();render();
+  }
+};
+if(!state.configured){
+  setTimeout(()=>{fillSetup();openS("setupSheet")},350);
+}
+render();
+setTimeout(handleIncomeShortcutReturn,60);
+</script>
+</body>
+</html>
