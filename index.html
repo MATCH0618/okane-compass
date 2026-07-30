@@ -1,90 +1,15 @@
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f766e">
-<title>お金コンパス</title>
-<link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<div class="app">
-  <header class="top"><div class="brand"><h1>お金コンパス</h1><div class="muted" id="cycleLabel"></div></div><button class="iconBtn" id="quickExpense">＋ 支出</button></header>
-
-  <main id="homeView" class="view active">
-    <section class="hero"><span class="pill" id="heroTone">今日の確認</span><strong id="heroTitle">おかえり</strong><div class="muted" id="heroDetail"></div></section>
-    <section class="grid">
-      <article class="card"><h3>食費・日用品</h3><div class="amount" id="foodBalance"></div></article>
-      <article class="card"><h3>お小遣い</h3><div class="amount" id="pocketBalance"></div></article>
-      <article class="card wide"><h3>今月あと使える金額</h3><div class="amount" id="spendable"></div></article>
-    </section>
-    <div class="sectionHead"><h2>目的別資金</h2><button class="linkBtn" data-open="fundSheet">追加</button></div>
-    <section class="card" id="homeFunds"></section>
-    <div class="sectionHead"><h2>最近の支出</h2><button class="linkBtn" data-open="expenseSheet">記録する</button></div>
-    <section class="card" id="recentTransactions"></section>
-  </main>
-
-  <main id="fundsView" class="view">
-    <div class="sectionHead"><h2>資金管理</h2><button class="linkBtn" data-open="fundSheet">＋追加</button></div>
-    <section class="card"><div class="item row"><div><b>食費・日用品</b><div class="muted">日常の支出用</div></div><b id="fundFood"></b></div><div class="item row"><div><b>お小遣い</b><div class="muted">自由に使うお金</div></div><b id="fundPocket"></b></div></section>
-    <div class="sectionHead"><h2>目的別資金</h2></div><div id="fundCards"></div>
-  </main>
-
-  <main id="historyView" class="view">
-    <div class="sectionHead"><h2>支出履歴</h2></div>
-    <section class="card" id="allTransactions"></section>
-  </main>
-
-  <main id="settingsView" class="view">
-    <div class="sectionHead"><h2>設定・データ</h2></div>
-    <section class="card settingsGrid">
-      <button class="iconBtn" data-open="balanceSheet">現在残高を設定</button>
-      <button class="iconBtn" id="exportBtn">バックアップを書き出す</button>
-      <button class="iconBtn" id="importBtn">バックアップを読み込む</button>
-      <button class="iconBtn dangerText" id="clearTransactions">支出履歴だけ削除</button>
-      <button class="iconBtn dangerText" id="resetAll">全データを初期化</button>
-      <input type="file" id="importFile" accept="application/json" hidden>
-    </section>
-    <div class="note" style="margin-top:14px">データはこの端末のSafari内に保存されます。機種変更やSafariデータ削除に備えて、定期的にバックアップしてください。</div>
-  </main>
-</div>
-
-<nav class="nav">
-  <button class="active" data-view="homeView"><span>⌂</span>ホーム</button>
-  <button data-view="fundsView"><span>◫</span>資金</button>
-  <button data-view="historyView"><span>▥</span>履歴</button>
-  <button data-view="settingsView"><span>⚙︎</span>設定</button>
-</nav>
-
-<div class="sheetWrap" id="expenseSheet"><div class="sheet"><div class="sheetHead"><h2>支出を記録</h2><button class="close" data-close>×</button></div><form id="expenseForm">
-  <div class="field"><label>金額</label><input id="expenseAmount" type="number" min="1" max="100000000" step="1" inputmode="numeric" required></div>
-  <div class="field"><label>使うお金</label><select id="expenseCategory" required><option value="">選択してください</option><option>食費・日用品</option><option>お小遣い</option></select></div>
-  <div class="field"><label>メモ</label><input id="expenseMemo" maxlength="80" placeholder="例：昼ごはん"></div>
-  <div class="field"><label>日付</label><input id="expenseDate" type="date" required></div>
-  <button class="btn" type="submit">確認して記録</button>
-</form></div></div>
-
-<div class="sheetWrap" id="fundSheet"><div class="sheet"><div class="sheetHead"><h2 id="fundSheetTitle">目的別資金を追加</h2><button class="close" data-close>×</button></div><input id="fundEditId" type="hidden">
-  <div class="field"><label>名前</label><input id="fundName" maxlength="30" placeholder="例：旅行費"></div>
-  <div class="two"><div class="field"><label>現在残高</label><input id="fundBalance" type="number" min="0" max="100000000" step="1"></div><div class="field"><label>目標額</label><input id="fundTarget" type="number" min="0" max="100000000" step="1"></div></div>
-  <div class="field"><label>期限</label><input id="fundDeadline" type="date"></div>
-  <button class="btn" id="saveFund" type="button">保存</button><button class="btn danger" id="deleteFund" type="button" style="display:none;margin-top:8px">削除</button>
-</div></div>
-
-<div class="sheetWrap" id="fundExpenseSheet"><div class="sheet"><div class="sheetHead"><h2>目的別資金から支出</h2><button class="close" data-close>×</button></div><input id="fundExpenseId" type="hidden">
-  <div class="note" id="fundExpenseInfo"></div>
-  <div class="field"><label>金額</label><input id="fundExpenseAmount" type="number" min="1" max="100000000" step="1"></div>
-  <div class="field"><label>メモ</label><input id="fundExpenseMemo" maxlength="80"></div>
-  <div class="field"><label>日付</label><input id="fundExpenseDate" type="date"></div>
-  <button class="btn" id="saveFundExpense" type="button">確認して記録</button>
-</div></div>
-
-<div class="sheetWrap" id="balanceSheet"><div class="sheet"><div class="sheetHead"><h2>現在残高を設定</h2><button class="close" data-close>×</button></div>
-  <div class="two"><div class="field"><label>食費・日用品</label><input id="balanceFood" type="number" min="0" max="100000000" step="1"></div><div class="field"><label>お小遣い</label><input id="balancePocket" type="number" min="0" max="100000000" step="1"></div></div>
-  <button class="btn" id="saveBalances" type="button">保存</button>
-</div></div>
-<div class="toast" id="toast"></div>
-<script src="core.js"></script>
-<script src="app-ui.js"></script>
-</body>
-</html>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0f766e"><title>お金コンパス</title><link rel="stylesheet" href="styles.css"></head><body>
+<div class="app"><header class="top"><div class="brand"><h1>お金コンパス</h1><div class="muted" id="cycleLabel"></div></div><button class="iconBtn" id="quickExpense">＋ 支出</button></header>
+<main id="homeView" class="view active"><section class="hero"><span class="pill" id="heroTone">今日の確認</span><strong id="heroTitle"></strong><div class="muted" id="heroDetail"></div></section><section class="grid"><article class="card"><h3>食費・日用品</h3><div class="amount" id="foodBalance"></div></article><article class="card"><h3>お小遣い</h3><div class="amount" id="pocketBalance"></div></article><article class="card wide"><h3>今月あと使える金額</h3><div class="amount" id="spendable"></div></article></section><div class="sectionHead"><h2>次の予定</h2><button class="linkBtn" data-view-jump="calendarView">カレンダー</button></div><section class="card" id="upcomingEvents"></section><div class="sectionHead"><h2>目的別資金</h2><button class="linkBtn" data-open="fundSheet">追加</button></div><section class="card" id="homeFunds"></section><div class="sectionHead"><h2>最近の支出</h2><button class="linkBtn" data-open="expenseSheet">記録する</button></div><section class="card" id="recentTransactions"></section></main>
+<main id="fundsView" class="view"><div class="sectionHead"><h2>資金管理</h2><button class="linkBtn" data-open="allocationSheet">＋入金振り分け</button></div><section class="card"><div class="item row"><div><b>食費・日用品</b><div class="muted">日常の支出用</div></div><b id="fundFood"></b></div><div class="item row"><div><b>お小遣い</b><div class="muted">自由に使うお金</div></div><b id="fundPocket"></b></div></section><div class="sectionHead"><h2>目的別資金</h2><button class="linkBtn" data-open="fundSheet">＋追加</button></div><div id="fundCards"></div><div class="sectionHead"><h2>振り分け履歴</h2></div><section class="card" id="allocationHistory"></section></main>
+<main id="calendarView" class="view"><div class="sectionHead"><h2>お金カレンダー</h2><button class="linkBtn" data-open="eventSheet">＋予定</button></div><section class="card calendarHead"><button id="prevMonth">‹</button><b id="monthLabel"></b><button id="nextMonth">›</button></section><section class="calendarGrid" id="calendarGrid"></section><div class="sectionHead"><h2 id="selectedDateLabel">予定</h2></div><section class="card" id="selectedDateEvents"></section></main>
+<main id="historyView" class="view"><div class="sectionHead"><h2>支出履歴</h2></div><section class="card" id="allTransactions"></section></main>
+<main id="settingsView" class="view"><div class="sectionHead"><h2>設定・連携</h2></div><section class="card settingsGrid"><button class="iconBtn" data-open="balanceSheet">現在残高を設定</button><button class="iconBtn" data-open="fixedSheet">固定支出を管理</button><button class="iconBtn" id="shortcutHelp">支出ショートカットの使い方</button><label class="settingRow">表示テーマ<select id="themeSelect"><option value="system">端末に合わせる</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><button class="iconBtn" id="exportBtn">バックアップを書き出す</button><button class="iconBtn" id="importBtn">バックアップを読み込む</button><button class="iconBtn dangerText" id="clearTransactions">支出履歴だけ削除</button><button class="iconBtn dangerText" id="resetAll">全データを初期化</button><input type="file" id="importFile" accept="application/json" hidden></section><div class="note">ショートカットからは、このURLに amount・category・memo・date を付けて開くと支出確認画面へ受け渡せます。</div></main></div>
+<nav class="nav"><button class="active" data-view="homeView"><span>⌂</span>ホーム</button><button data-view="fundsView"><span>◫</span>資金</button><button data-view="calendarView"><span>▦</span>予定</button><button data-view="historyView"><span>▥</span>履歴</button><button data-view="settingsView"><span>⚙︎</span>設定</button></nav>
+<div class="sheetWrap" id="expenseSheet"><div class="sheet"><div class="sheetHead"><h2>支出を記録</h2><button class="close" data-close>×</button></div><form id="expenseForm"><div class="field"><label>金額</label><input id="expenseAmount" type="number" min="1" max="100000000" step="1" inputmode="numeric" required></div><div class="field"><label>使うお金</label><select id="expenseCategory" required><option value="">選択してください</option><option>食費・日用品</option><option>お小遣い</option></select></div><div class="field"><label>メモ</label><input id="expenseMemo" maxlength="80"></div><div class="field"><label>日付</label><input id="expenseDate" type="date" required></div><button class="btn" type="submit">確認して記録</button></form></div></div>
+<div class="sheetWrap" id="allocationSheet"><div class="sheet"><div class="sheetHead"><h2>入金を振り分け</h2><button class="close" data-close>×</button></div><div class="field"><label>入金額</label><input id="allocationIncome" type="number" min="1" max="100000000" step="1"></div><div class="two"><div class="field"><label>食費・日用品</label><input id="allocationFood" type="number" min="0"></div><div class="field"><label>お小遣い</label><input id="allocationPocket" type="number" min="0"></div></div><div id="allocationFunds"></div><div class="field"><label>提案理由・メモ</label><textarea id="allocationNote"></textarea></div><div class="stack"><button class="btn secondary" id="copyAllocationPrompt" type="button">コンパス相談文をコピー</button><button class="btn" id="applyAllocation" type="button">確認して反映</button></div></div></div>
+<div class="sheetWrap" id="eventSheet"><div class="sheet"><div class="sheetHead"><h2>予定を追加</h2><button class="close" data-close>×</button></div><div class="field"><label>日付</label><input id="eventDate" type="date"></div><div class="field"><label>タイトル</label><input id="eventTitle" maxlength="40"></div><div class="two"><div class="field"><label>種類</label><select id="eventType"><option value="event">予定</option><option value="income">入金</option><option value="bill">引落</option><option value="goal">目標期限</option></select></div><div class="field"><label>予定金額</label><input id="eventAmount" type="number" min="0"></div></div><div class="field"><label>メモ</label><input id="eventMemo" maxlength="100"></div><button class="btn" id="saveEvent" type="button">保存</button></div></div>
+<div class="sheetWrap" id="fixedSheet"><div class="sheet"><div class="sheetHead"><h2>固定支出</h2><button class="close" data-close>×</button></div><div id="fixedList"></div><div class="field"><label>名前</label><input id="fixedName"></div><div class="two"><div class="field"><label>金額</label><input id="fixedAmount" type="number" min="1"></div><div class="field"><label>分類</label><select id="fixedCategory"><option>食費・日用品</option><option>お小遣い</option></select></div></div><button class="btn" id="addFixed" type="button">追加</button></div></div>
+<div class="sheetWrap" id="fundSheet"><div class="sheet"><div class="sheetHead"><h2 id="fundSheetTitle">目的別資金を追加</h2><button class="close" data-close>×</button></div><input id="fundEditId" type="hidden"><div class="field"><label>名前</label><input id="fundName" maxlength="30"></div><div class="two"><div class="field"><label>現在残高</label><input id="fundBalance" type="number" min="0"></div><div class="field"><label>目標額</label><input id="fundTarget" type="number" min="0"></div></div><div class="field"><label>期限</label><input id="fundDeadline" type="date"></div><button class="btn" id="saveFund" type="button">保存</button><button class="btn danger" id="deleteFund" type="button" style="display:none;margin-top:8px">削除</button></div></div>
+<div class="sheetWrap" id="fundExpenseSheet"><div class="sheet"><div class="sheetHead"><h2>目的別資金から支出</h2><button class="close" data-close>×</button></div><input id="fundExpenseId" type="hidden"><div class="note" id="fundExpenseInfo"></div><div class="field"><label>金額</label><input id="fundExpenseAmount" type="number" min="1"></div><div class="field"><label>メモ</label><input id="fundExpenseMemo"></div><div class="field"><label>日付</label><input id="fundExpenseDate" type="date"></div><button class="btn" id="saveFundExpense" type="button">確認して記録</button></div></div>
+<div class="sheetWrap" id="balanceSheet"><div class="sheet"><div class="sheetHead"><h2>現在残高を設定</h2><button class="close" data-close>×</button></div><div class="two"><div class="field"><label>食費・日用品</label><input id="balanceFood" type="number" min="0"></div><div class="field"><label>お小遣い</label><input id="balancePocket" type="number" min="0"></div></div><button class="btn" id="saveBalances" type="button">保存</button></div></div><div class="toast" id="toast"></div><script src="core.js"></script><script src="app-ui.js"></script></body></html>
