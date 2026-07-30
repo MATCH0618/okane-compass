@@ -39,15 +39,27 @@
     if(value===null||!validCategory(category))return null;
     const date=safeDate(String(raw?.date||''))||today();
     const memo=String(raw?.memo||raw?.name||category).slice(0,80);
-    const sourceId=String(raw?.id||raw?.createdAt||`${date}-${value}-${category}-${memo}-${index}`);
-    return {id:`shortcut-${sourceId}`,date,amount:value,category,memo,kind:'expense',source:'shortcut-file',createdAt:Number(raw?.createdAt)||Date.now()+index};
+    const mode=['voice','text','fixed'].includes(raw?.mode)?raw.mode:'shortcut';
+    const sourceId=String(raw?.id||raw?.createdAt||`${date}-${value}-${category}-${memo}-${mode}-${index}`);
+    return {id:`shortcut-${sourceId}`,date,amount:value,category,memo,kind:'expense',source:`shortcut-${mode}`,createdAt:Number(raw?.createdAt)||Date.now()+index};
   };
 
   exportConfig.addEventListener('click',()=>{
+    const categories=[
+      {id:'food',name:'食費・日用品'},
+      {id:'pocket',name:'お小遣い'}
+    ];
     const data={
       format:'okane-compass-shortcut-config',
-      version:1,
+      version:2,
       updatedAt:new Date().toISOString(),
+      queueFileName:'okane-compass-pending.jsonl',
+      inputModes:[
+        {id:'voice',label:'音声で入力',memoPrompt:'何に使いましたか？',amountPrompt:'支出金額はいくらですか？'},
+        {id:'fixed',label:'固定金額から選択'},
+        {id:'text',label:'文字で入力',memoPrompt:'何に使いましたか？',amountPrompt:'支出金額はいくらですか？'}
+      ],
+      categories,
       fixedExpenses:state.fixedExpenses.map(f=>({
         id:f.id,
         name:f.name,
@@ -56,8 +68,8 @@
         label:`${f.name}｜${f.amount}円｜${f.category}`
       }))
     };
-    downloadText('okane-compass-fixed-expenses.json',JSON.stringify(data,null,2));
-    toast('固定支出設定を書き出しました');
+    downloadText('okane-compass-shortcut-config.json',JSON.stringify(data,null,2));
+    toast('ショートカット共通設定を書き出しました');
   });
 
   const chooseQueue=()=>queueInput.click();
@@ -102,7 +114,7 @@
   });
 
   const help=document.querySelector('#shortcutHelp');
-  if(help)help.onclick=()=>alert('新しい方式ではSafariを毎回開きません。\n\n1. アプリで固定支出を登録\n2. 「固定支出をショートカット用に書き出す」\n3. ファイルをiCloud DriveのShortcutsフォルダへ保存\n4. ショートカットは設定ファイルから固定支出を選択\n5. 支出をJSON形式で待機ファイルへ追記\n6. アプリ起動後「ショートカット支出を確認」から待機ファイルを選択\n\nWebアプリはiCloud Driveを無断で読めないため、ファイル選択の1操作だけ必要です。');
+  if(help)help.onclick=()=>alert('音声・固定金額・文字入力は、すべて同じ方式です。\n\n1. アプリで固定支出などを設定\n2. 「ショートカット共通設定を書き出す」\n3. okane-compass-shortcut-config.jsonをiCloud DriveのShortcutsフォルダへ保存\n4. ショートカットは設定ファイルから入力方式・支出元・固定支出を選択\n5. 3方式とも支出をokane-compass-pending.jsonlへ追記\n6. Safariは開かず通知だけ表示\n7. アプリ起動後「ショートカット支出を確認」から待機ファイルを選択\n\nWebアプリはiCloud Driveを無断で読めないため、ファイル選択の1操作だけ必要です。');
 
   banner.hidden=false;
 })();
