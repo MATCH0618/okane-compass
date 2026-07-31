@@ -1,0 +1,46 @@
+name: Apply Compass data safety patch
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/compass-data-safety
+    paths:
+      - .github/workflows/apply-data-safety.yml
+      - tools/apply_data_safety_patch.py
+      - tools/test_data_safety_patch.py
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/compass-data-safety
+      - name: Apply patch
+        run: python tools/apply_data_safety_patch.py
+      - name: Validate patched file
+        run: python tools/test_data_safety_patch.py
+      - name: Check JavaScript syntax
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('index.html').read_text(encoding='utf-8')
+          script = text.split('<script>', 1)[1].rsplit('</script>', 1)[0]
+          Path('/tmp/compass-script.js').write_text(script, encoding='utf-8')
+          PY
+          node --check /tmp/compass-script.js
+      - name: Commit patched index
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "index.html already patched"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Apply Compass data safety safeguards"
+          git push
