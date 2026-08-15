@@ -1,11 +1,9 @@
 'use strict';
 (()=>{
-  const banner=document.querySelector('#shortcutSyncBanner');
   const queueInput=document.querySelector('#shortcutQueueFile');
   const exportConfig=document.querySelector('#exportShortcutConfig');
   const importQueue=document.querySelector('#importShortcutQueue');
-  const openQueue=document.querySelector('#openShortcutQueue');
-  if(!banner||!queueInput||!exportConfig||!importQueue)return;
+  if(!queueInput||!exportConfig||!importQueue)return;
 
   const downloadText=(name,text,type='application/json')=>{
     const blob=new Blob([text],{type});
@@ -72,9 +70,7 @@
     toast('ショートカット共通設定を書き出しました');
   });
 
-  const chooseQueue=()=>queueInput.click();
-  importQueue.addEventListener('click',chooseQueue);
-  openQueue?.addEventListener('click',chooseQueue);
+  importQueue.addEventListener('click',()=>queueInput.click());
 
   queueInput.addEventListener('change',async event=>{
     const file=event.target.files?.[0];
@@ -102,7 +98,6 @@
       state.transactions.push(...fresh);
       save();
       render();
-      banner.hidden=true;
       localStorage.setItem('okane_compass_last_shortcut_import',new Date().toISOString());
       toast(`${fresh.length}件を取り込みました`);
       alert('取り込みが完了しました。同じ待機ファイルを再度選んでも、取込済みIDは二重登録されません。');
@@ -114,7 +109,5 @@
   });
 
   const help=document.querySelector('#shortcutHelp');
-  if(help)help.onclick=()=>alert('音声・固定金額・文字入力は、すべて同じ方式です。\n\n1. アプリで固定支出などを設定\n2. 「ショートカット共通設定を書き出す」\n3. okane-compass-shortcut-config.jsonをiCloud DriveのShortcutsフォルダへ保存\n4. ショートカットは設定ファイルから入力方式・支出元・固定支出を選択\n5. 3方式とも支出をokane-compass-pending.jsonlへ追記\n6. Safariは開かず通知だけ表示\n7. アプリ起動後「ショートカット支出を確認」から待機ファイルを選択\n\nWebアプリはiCloud Driveを無断で読めないため、ファイル選択の1操作だけ必要です。');
-
-  banner.hidden=false;
+  if(help)help.onclick=()=>alert('音声・固定金額・文字入力は、すべて同じ方式です。\n\n1. アプリで固定支出などを設定\n2. 「ショートカット共通設定を書き出す」\n3. okane-compass-shortcut-config.jsonをiCloud DriveのShortcutsフォルダへ保存\n4. ショートカットは設定ファイルから入力方式・支出元・固定支出を選択\n5. 3方式とも支出をokane-compass-pending.jsonlへ追記\n6. Safariは開かず通知だけ表示\n7. 反映するときだけ「設定 → ショートカット支出を取り込む」から待機ファイルを選択\n\nGitHub Pages版はSafariの制約によりiCloud Driveを裏側で自動読込できません。');
 })();
