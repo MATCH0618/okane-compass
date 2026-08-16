@@ -23,7 +23,9 @@ const sample={
   password:'do-not-export'
 };
 
+const sourceSnapshot=JSON.stringify(sample);
 const exported=api.buildExport(sample,new Date(2026,7,17,9,8,7));
+assert.equal(JSON.stringify(sample),sourceSnapshot);
 assert.deepEqual(exported.metadata.aggregationPeriod,{start:'2026-07-25',end:'2026-08-24'});
 assert.equal(exported.metadata.counts.expensesInPeriod,1);
 assert.equal(exported.expenses[0].status,'確定');
