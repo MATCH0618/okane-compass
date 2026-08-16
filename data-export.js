@@ -257,11 +257,12 @@
     const button=document.querySelector('#shareWithHouseholdAi');
     if(!button)return;
     button.addEventListener('click',async()=>{
-      const exportedAt=new Date(),data=buildExport(globalThis.state,exportedAt);
+      const sourceState=typeof state!=='undefined'?state:{};
+      const exportedAt=new Date(),data=buildExport(sourceState,exportedAt);
       if(!confirm(confirmationText(data)))return;
       const result=await shareOrDownload(data,exportedAt);
-      if(result==='shared')globalThis.toast?.('家計データを共有しました');
-      if(result==='downloaded')globalThis.toast?.('JSON・CSVを書き出しました');
+      if(result==='shared'&&typeof toast==='function')toast('家計データを共有しました');
+      if(result==='downloaded'&&typeof toast==='function')toast('JSON・CSVを書き出しました');
     });
   }
 
