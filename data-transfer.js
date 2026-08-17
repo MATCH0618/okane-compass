@@ -6,6 +6,7 @@
   const FORMAT='okane-compass-state-transfer';
   const PATCH_FORMAT='okane-compass-state-patch';
   const VERSION=1;
+  const BACKUP_KEY='okane_compass_before_restore_v1';
 
   function encodeUtf8Base64Url(value){
     const bytes=new TextEncoder().encode(value);
@@ -68,6 +69,20 @@
       if(index>=0)fixed[index]={...fixed[index],...item};else fixed.push(item);
     }
     next.fixedExpenses=fixed;
+    const batch=patch?.transactionBatch;
+    if(batch&&Array.isArray(batch.records)&&typeof batch.idPrefix==='string'){
+      const transactions=Array.isArray(next.transactions)?next.transactions:[];
+      batch.records.forEach((row,index)=>{
+        if(!Array.isArray(row)||row.length<4)return;
+        const id=`${batch.idPrefix}${String(row[0]).padStart(3,'0')}`;
+        const value=Number(row[2]);
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(row[1]||'')||!Number.isInteger(value)||value<=0)return;
+        const item={id,date:row[1],amount:value,category:String(batch.category||''),memo:String(row[3]||'').slice(0,80),kind:'expense',source:String(batch.source||'端末データ修復').slice(0,40),createdAt:Date.parse(`${row[1]}T12:00:00+09:00`)+index};
+        const existing=transactions.findIndex(entry=>entry.id===id);
+        if(existing>=0)transactions[existing]={...transactions[existing],...item};else transactions.push(item);
+      });
+      next.transactions=transactions;
+    }
     for(const correction of Array.isArray(patch?.transactionCorrections)?patch.transactionCorrections:[]){
       next.transactions=(Array.isArray(next.transactions)?next.transactions:[]).map(item=>{
         const matches=correction?.id?item.id===correction.id:(correction?.idPrefix?String(item.id||'').startsWith(correction.idPrefix):false);
@@ -121,12 +136,27 @@
       const isPatch=payload.format===PATCH_FORMAT;
       const next=isPatch?applyPatch(typeof state!=='undefined'?state:{},payload.patch):(typeof normalizeState==='function'?normalizeState(payload.state):payload.state);
       if(!confirm(`${isPatch?'現在のデータを修復します。':'コピー元のデータで現在のデータを置き換えます。'}\n\n${summary(next)}\n\n反映しますか？`))return;
+      try{localStorage.setItem(BACKUP_KEY,JSON.stringify(typeof normalizeState==='function'?normalizeState(state):state))}catch{}
       state=next;
       save();
       render();
       if(typeof switchView==='function')switchView('homeView');
       if(typeof toast==='function')toast('端末データを復元しました');
+      const undo=document.querySelector('#undoDeviceRestore');if(undo)undo.hidden=false;
     }catch(error){alert(error?.message||'端末データを復元できませんでした。')}
+  }
+
+  function undoRestore(){
+    try{
+      const raw=localStorage.getItem(BACKUP_KEY);
+      if(!raw)return alert('元に戻せるデータはありません。');
+      const next=typeof normalizeState==='function'?normalizeState(JSON.parse(raw)):JSON.parse(raw);
+      if(!confirm(`直前の復元前データに戻します。\n\n${summary(next)}\n\n元に戻しますか？`))return;
+      state=next;save();localStorage.removeItem(BACKUP_KEY);render();
+      if(typeof switchView==='function')switchView('homeView');
+      const undo=document.querySelector('#undoDeviceRestore');if(undo)undo.hidden=true;
+      if(typeof toast==='function')toast('復元前のデータに戻しました');
+    }catch{alert('復元前のデータに戻せませんでした。')}
   }
 
   function bind(){
@@ -137,12 +167,14 @@
     copy.className='iconBtn';copy.id='copyDeviceData';copy.textContent='端末データをコピー';
     const restore=document.createElement('button');
     restore.className='iconBtn';restore.id='restoreDeviceData';restore.textContent='コピーしたデータを復元';
+    const undo=document.createElement('button');
+    undo.className='iconBtn';undo.id='undoDeviceRestore';undo.textContent='直前の復元を取り消す';undo.hidden=!localStorage.getItem(BACKUP_KEY);
     const note=document.createElement('div');
     note.className='note';note.style.gridColumn='1/-1';note.textContent='ChatGPT内ブラウザとホーム画面版のデータ引越しに使います。ファイル保存は不要です。';
-    grid.insertBefore(copy,anchor);grid.insertBefore(restore,anchor);grid.insertBefore(note,anchor);
-    copy.onclick=copyCurrent;restore.onclick=restoreCurrent;
+    grid.insertBefore(copy,anchor);grid.insertBefore(restore,anchor);grid.insertBefore(undo,anchor);grid.insertBefore(note,anchor);
+    copy.onclick=copyCurrent;restore.onclick=restoreCurrent;undo.onclick=undoRestore;
   }
 
-  globalThis.OkaneCompassDataTransfer={PREFIX,PATCH_PREFIX,FORMAT,PATCH_FORMAT,VERSION,encodeTransfer,decodeTransfer,encodePatch,decodeInput,applyPatch};
+  globalThis.OkaneCompassDataTransfer={PREFIX,PATCH_PREFIX,FORMAT,PATCH_FORMAT,VERSION,BACKUP_KEY,encodeTransfer,decodeTransfer,encodePatch,decodeInput,applyPatch};
   if(typeof document!=='undefined')bind();
 })();
