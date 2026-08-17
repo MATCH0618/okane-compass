@@ -2,7 +2,9 @@
 
 (()=>{
   const PREFIX='OKANE_COMPASS_TRANSFER_V1:';
+  const PATCH_PREFIX='OKANE_COMPASS_PATCH_V1:';
   const FORMAT='okane-compass-state-transfer';
+  const PATCH_FORMAT='okane-compass-state-patch';
   const VERSION=1;
 
   function encodeUtf8Base64Url(value){
@@ -30,6 +32,53 @@
     const payload=JSON.parse(decodeUtf8Base64Url(encoded));
     if(!payload||payload.format!==FORMAT||payload.version!==VERSION||!payload.state||typeof payload.state!=='object')throw new Error('引越しコードの形式が正しくありません。');
     return payload;
+  }
+
+  function encodePatch(patch,exportedAt=new Date()){
+    return PATCH_PREFIX+encodeUtf8Base64Url(JSON.stringify({format:PATCH_FORMAT,version:VERSION,exportedAt:exportedAt.toISOString(),patch}));
+  }
+
+  function decodeInput(raw){
+    const value=String(raw||'').trim();
+    if(value.startsWith(PATCH_PREFIX)){
+      const payload=JSON.parse(decodeUtf8Base64Url(value.slice(PATCH_PREFIX.length)));
+      if(!payload||payload.format!==PATCH_FORMAT||payload.version!==VERSION||!payload.patch||typeof payload.patch!=='object')throw new Error('修復コードの形式が正しくありません。');
+      return payload;
+    }
+    return decodeTransfer(value);
+  }
+
+  function applyPatch(sourceState,patch){
+    const next=typeof normalizeState==='function'?normalizeState(sourceState):JSON.parse(JSON.stringify(sourceState||{}));
+    next.balances=next.balances&&typeof next.balances==='object'?next.balances:{};
+    for(const key of ['food','pocket']){
+      const value=Number(patch?.balances?.[key]);
+      if(Number.isInteger(value)&&value>=0&&value<=100000000)next.balances[key]=value;
+    }
+    const fundBalances=patch?.fundBalances&&typeof patch.fundBalances==='object'?patch.fundBalances:{};
+    next.funds=(Array.isArray(next.funds)?next.funds:[]).map(fund=>{
+      if(!Object.prototype.hasOwnProperty.call(fundBalances,fund.id))return fund;
+      const value=Number(fundBalances[fund.id]);
+      return Number.isInteger(value)&&value>=0&&value<=100000000?{...fund,balance:value}:fund;
+    });
+    const fixed=Array.isArray(next.fixedExpenses)?next.fixedExpenses:[];
+    for(const item of Array.isArray(patch?.fixedExpenses)?patch.fixedExpenses:[]){
+      if(!item?.id)continue;
+      const index=fixed.findIndex(entry=>entry.id===item.id);
+      if(index>=0)fixed[index]={...fixed[index],...item};else fixed.push(item);
+    }
+    next.fixedExpenses=fixed;
+    for(const correction of Array.isArray(patch?.transactionCorrections)?patch.transactionCorrections:[]){
+      next.transactions=(Array.isArray(next.transactions)?next.transactions:[]).map(item=>{
+        const matches=correction?.id?item.id===correction.id:(correction?.idPrefix?String(item.id||'').startsWith(correction.idPrefix):false);
+        if(!matches)return item;
+        const updated={...item};
+        if(typeof correction.memo==='string')updated.memo=correction.memo;
+        if(typeof correction.source==='string')updated.source=correction.source;
+        return updated;
+      });
+    }
+    return typeof normalizeState==='function'?normalizeState(next):next;
   }
 
   async function writeClipboard(value){
@@ -68,9 +117,10 @@
     try{
       const raw=await readClipboard();
       if(!raw)return;
-      const payload=decodeTransfer(raw);
-      const next=typeof normalizeState==='function'?normalizeState(payload.state):payload.state;
-      if(!confirm(`コピー元のデータで現在のデータを置き換えます。\n\n${summary(next)}\n\n反映しますか？`))return;
+      const payload=decodeInput(raw);
+      const isPatch=payload.format===PATCH_FORMAT;
+      const next=isPatch?applyPatch(typeof state!=='undefined'?state:{},payload.patch):(typeof normalizeState==='function'?normalizeState(payload.state):payload.state);
+      if(!confirm(`${isPatch?'現在のデータを修復します。':'コピー元のデータで現在のデータを置き換えます。'}\n\n${summary(next)}\n\n反映しますか？`))return;
       state=next;
       save();
       render();
@@ -93,6 +143,6 @@
     copy.onclick=copyCurrent;restore.onclick=restoreCurrent;
   }
 
-  globalThis.OkaneCompassDataTransfer={PREFIX,FORMAT,VERSION,encodeTransfer,decodeTransfer};
+  globalThis.OkaneCompassDataTransfer={PREFIX,PATCH_PREFIX,FORMAT,PATCH_FORMAT,VERSION,encodeTransfer,decodeTransfer,encodePatch,decodeInput,applyPatch};
   if(typeof document!=='undefined')bind();
 })();
