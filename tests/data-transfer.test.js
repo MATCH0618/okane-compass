@@ -26,4 +26,11 @@ assert.equal(patched.fixedExpenses[0].name,'あんぱん');
 assert.equal(patched.transactions[0].memo,'QP/セイユウ');
 assert.equal(patched.transactions[0].source,'au PAY履歴画像');
 
+const recovery={transactionBatch:{idPrefix:'aupay-202608-',category:'食費・日用品',source:'au PAY履歴画像',records:[[1,'2026-08-01',349,'QP/セイユウ'],[2,'2026-08-02',2178,'ドン・キホーテ']]}};
+const recovered=api.applyPatch({...state,transactions:[{id:'older',date:'2026-07-01',amount:100,kind:'expense',memo:'以前の履歴'},{...state.transactions[0],id:'aupay-202608-001'}]},recovery);
+assert.equal(recovered.transactions.length,3);
+assert.ok(recovered.transactions.some(item=>item.id==='older'));
+assert.equal(recovered.transactions.filter(item=>item.id==='aupay-202608-001').length,1);
+assert.equal(recovered.transactions.find(item=>item.id==='aupay-202608-002').amount,2178);
+
 console.log('data-transfer tests passed');
