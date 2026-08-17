@@ -258,7 +258,7 @@
       '・未入力項目は推測で補完せず、必要な確認事項として示してください。',
       '',
       '【お金コンパス共有データ（JSON）】',
-      JSON.stringify(data,null,2)
+      JSON.stringify(data)
     ].join('\n');
   }
 
