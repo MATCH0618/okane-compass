@@ -249,16 +249,62 @@
   }
 
   function toClipboardText(data){
+    const money=value=>value===null||value===undefined?'未入力':`${Number(value).toLocaleString('ja-JP')}円`;
+    const none=(items,label='なし')=>items.length?items:[label];
+    const periodExpenses=data.expenses.filter(item=>item.withinAggregationPeriod);
+    const periodIncome=data.incomes.confirmed.filter(item=>item.withinAggregationPeriod);
+    const plannedIncome=data.incomes.planned.filter(item=>item.withinAggregationPeriod);
+    const total=items=>items.reduce((sum,item)=>sum+(Number(item.amount)||0),0);
+    const balances=data.balanceBuckets.map(item=>`・${item.name}：${money(item.currentAmount)}（${item.status}）`);
+    const expenses=data.expenses.map(item=>`・${item.date||'日付未入力'}｜${money(item.amount)}｜${item.category||'カテゴリ未入力'}｜${item.status}｜${item.note||'メモなし'}｜対象期間：${item.withinAggregationPeriod?'今期':'期間外'}`);
+    const goals=data.savingsGoals.map(item=>`・${item.name}：現在 ${money(item.currentAmount)}（${item.currentAmountStatus}）／目標 ${money(item.targetAmount)}（${item.targetAmountStatus}）／期限 ${item.deadline||'未入力'}／積立予定 ${money(item.scheduledContributionAmount)}（${item.scheduledContributionStatus}）`);
+    const payments=data.futurePayments.map(item=>`・${item.date||'日付未入力'}｜${item.title}｜${money(item.amount)}（${item.status}）${item.note?`｜${item.note}`:''}`);
+    const events=data.calendarEvents.filter(item=>item.type!=='bill').map(item=>`・${item.date||'日付未入力'}｜${item.title}｜${money(item.amount)}（${item.status}）${item.note?`｜${item.note}`:''}`);
+    const fixed=data.fixedExpenseMasters.map(item=>`・${item.name}：${money(item.amount)}｜${item.category||'カテゴリ未入力'}（${item.status}・実績ではない入力候補）`);
+    const missing=data.unenteredOrUnconfirmed.map(item=>`・${item.name}（${item.status}）：${item.reason}`);
     return [
       '【家計管理AIへの依頼】',
       '以下は「お金コンパス」に保存されている現在残高と全期間の履歴データです。内容を検算し、今期の収支、過去の支出傾向、今後の支払予定、目的別資金の進捗を分析してください。',
-      '・withinAggregationPeriod=true は現在の給与サイクル（25日〜24日）の対象明細です。',
       '・確定、予定、推測、未確認を区別し、予定額と確定額を混同しないでください。',
-      '・fixedExpenseMasters は入力候補であり、実際の支出実績ではありません。',
+      '・固定支出候補は実際の支出実績ではありません。',
       '・未入力項目は推測で補完せず、必要な確認事項として示してください。',
       '',
-      '【お金コンパス共有データ（JSON）】',
-      JSON.stringify(data)
+      '【データ基準】',
+      `・基準日：${data.metadata.referenceDate}`,
+      `・給与サイクル：${data.metadata.aggregationPeriod.start}〜${data.metadata.aggregationPeriod.end}（25日〜24日）`,
+      `・データ更新日時：${data.metadata.dataUpdatedAt||'未入力'}`,
+      '',
+      '【現在残高】',
+      ...balances,
+      `・利用可能額：${money(data.appCalculatedValues.availableAmount.value)}（${data.appCalculatedValues.availableAmount.status}）`,
+      '',
+      '【今期集計】',
+      `・確定支出：${money(total(periodExpenses))}（${periodExpenses.length}件）`,
+      `・確定収入：${money(total(periodIncome))}（${periodIncome.length}件）`,
+      `・予定収入：${money(total(plannedIncome))}（${plannedIncome.length}件）`,
+      `・月次収支：${money(data.appCalculatedValues.monthlyCashflow.value)}（${data.appCalculatedValues.monthlyCashflow.status}）`,
+      '',
+      `【支出履歴・全期間 ${data.expenses.length}件】`,
+      ...none(expenses,'・なし（0件）'),
+      '',
+      '【今後の支払予定】',
+      ...none(payments,'・なし（0件）'),
+      '',
+      '【その他の予定】',
+      ...none(events,'・なし（0件）'),
+      '',
+      '【目的別資金】',
+      ...none(goals,'・なし（0件）'),
+      '',
+      '【固定支出の入力候補】',
+      ...none(fixed,'・なし（0件）'),
+      '',
+      '【検算】',
+      `・今期支出明細合計：${money(data.verification.periodExpenseDetailTotal)}`,
+      `・保存済み集計値との差額：${money(data.verification.expenseDifference)}（${data.verification.expenseDifferenceReason}）`,
+      '',
+      '【未入力・未確認項目】',
+      ...none(missing,'・なし')
     ].join('\n');
   }
 
