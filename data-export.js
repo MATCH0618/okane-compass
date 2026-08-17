@@ -2,7 +2,7 @@
 
 (()=>{
   const EXPORT_FORMAT='okane-compass-household-ai';
-  const EXPORT_VERSION='1.0.0';
+  const EXPORT_VERSION='1.1.0';
   const STATUS={CONFIRMED:'確定',PLANNED:'予定',ESTIMATED:'推測',UNCONFIRMED:'未確認'};
 
   const text=v=>String(v??'');
@@ -32,17 +32,32 @@
     const allocations=Array.isArray(source.allocations)?source.allocations:[];
     const events=Array.isArray(source.calendarEvents)?source.calendarEvents:[];
     const fixedExpenses=Array.isArray(source.fixedExpenses)?source.fixedExpenses:[];
+    const allocationHistory=allocations.map((allocation,index)=>({
+      id:recordId('allocation',allocation?.id,index),
+      date:text(allocation?.date)||null,
+      income:numberOrNull(allocation?.income),
+      status:STATUS.CONFIRMED,
+      note:text(allocation?.note)||null,
+      withinAggregationPeriod:inPeriod(allocation?.date,period),
+      items:(Array.isArray(allocation?.items)?allocation.items:[]).map((item,itemIndex)=>({
+        id:`${recordId('allocation',allocation?.id,index)}-${itemIndex+1}`,
+        targetId:text(item?.targetId)||null,
+        name:text(item?.name)||null,
+        amount:numberOrNull(item?.amount),
+        status:STATUS.CONFIRMED
+      }))
+    }));
     const expenses=transactions.filter(item=>item?.kind!=='income');
     const transactionIncomes=transactions.filter(item=>item?.kind==='income');
     const confirmedIncomes=[
-      ...allocations.map((item,index)=>({
-        id:recordId('allocation',item?.id,index),
-        date:text(item?.date)||null,
-        amount:numberOrNull(item?.income),
+      ...allocationHistory.map(item=>({
+        id:item.id,
+        date:item.date,
+        amount:item.income,
         status:STATUS.CONFIRMED,
         source:'入金振り分け履歴',
-        note:text(item?.note)||null,
-        withinAggregationPeriod:inPeriod(item?.date,period)
+        note:item.note,
+        withinAggregationPeriod:item.withinAggregationPeriod
       })),
       ...transactionIncomes.map((item,index)=>({
         id:recordId('income-transaction',item?.id,index),
@@ -153,6 +168,7 @@
         counts:{
           balanceBuckets:balanceBuckets.length,funds:fundRecords.length,expenses:expenseRecords.length,
           expensesInPeriod:periodExpenses.length,confirmedIncomes:confirmedIncomes.length,
+          allocations:allocationHistory.length,
           plannedIncomes:plannedIncomes.length,calendarEvents:calendarEvents.length,futurePayments:futurePayments.length,
           fixedExpenseMasters:fixedExpenseMasters.length,missingItems:missingItems.length
         }
@@ -165,6 +181,7 @@
       expenses:expenseRecords,
       expenseCategories:[...new Set(expenseRecords.map(item=>item.category).filter(Boolean))],
       fixedExpenseMasters,
+      allocationHistory,
       savingsGoals:fundRecords,
       savingsContributions:{planned:[],actual:actualContributions},
       futurePayments,
@@ -213,6 +230,10 @@
     data.incomes.planned.forEach(item=>add('income_planned',item));
     data.expenses.forEach(item=>add('expense',item));
     data.fixedExpenseMasters.forEach(item=>add('fixed_expense_master',item));
+    data.allocationHistory.forEach(allocation=>{
+      add('allocation_income',{id:allocation.id,date:allocation.date,name:'入金振り分け',amount:allocation.income,status:allocation.status,note:allocation.note});
+      allocation.items.forEach(item=>add('allocation_item',{...item,date:allocation.date,source:allocation.id}));
+    });
     data.savingsGoals.forEach(item=>add('savings_goal',item));
     data.savingsContributions.actual.forEach(item=>add('savings_contribution_actual',{...item,name:item.fundName}));
     data.futurePayments.forEach(item=>add('future_payment',item));
@@ -222,50 +243,61 @@
     return `\uFEFF${lines.join('\r\n')}`;
   }
 
-  const makeFiles=(data,stamp)=>[
-    new File([JSON.stringify(data,null,2)],`okane_compass_export_${stamp}.json`,{type:'application/json;charset=utf-8'}),
-    new File([toCsv(data)],`okane_compass_export_${stamp}.csv`,{type:'text/csv;charset=utf-8'})
-  ];
-
-  function download(file){
-    const url=URL.createObjectURL(file),anchor=document.createElement('a');
-    anchor.href=url;anchor.download=file.name;document.body.appendChild(anchor);anchor.click();anchor.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-  }
-
-  async function shareOrDownload(data,exportedAt){
-    const files=makeFiles(data,localStamp(exportedAt));
-    if(navigator.share&&(!navigator.canShare||navigator.canShare({files}))){
-      try{
-        await navigator.share({title:'お金コンパス 家計データ',text:'家計管理AIで確認するためのJSON・CSVです。',files});
-        return'shared';
-      }catch(error){
-        if(error?.name==='AbortError')return'cancelled';
-      }
-    }
-    download(files[0]);
-    setTimeout(()=>download(files[1]),250);
-    return'downloaded';
-  }
-
-  function confirmationText(data){
+  function shareSummary(data){
     const meta=data.metadata,updated=meta.dataUpdatedAt?new Date(meta.dataUpdatedAt).toLocaleString('ja-JP'):'未入力';
-    return `家計管理AIへ共有しますか？\n\n対象期間: ${meta.aggregationPeriod.start}〜${meta.aggregationPeriod.end}\n支出: ${meta.counts.expensesInPeriod}件（全履歴 ${meta.counts.expenses}件）\n目的別資金: ${meta.counts.funds}件\n今後の支払予定: ${meta.counts.futurePayments}件\nデータ更新日時: ${updated}\n未入力・未確認: ${meta.counts.missingItems}項目\n\nJSONとCSVを作成します。アプリ内データは変更しません。`;
+    return `共有対象：支出全履歴 ${meta.counts.expenses}件（今期 ${meta.counts.expensesInPeriod}件）・入金 ${meta.counts.confirmedIncomes}件・振り分け ${meta.counts.allocations}件・目的別資金 ${meta.counts.funds}件・予定 ${meta.counts.calendarEvents}件｜対象期間 ${meta.aggregationPeriod.start}〜${meta.aggregationPeriod.end}｜更新 ${updated}`;
+  }
+
+  function toClipboardText(data){
+    return [
+      '【家計管理AIへの依頼】',
+      '以下は「お金コンパス」に保存されている現在残高と全期間の履歴データです。内容を検算し、今期の収支、過去の支出傾向、今後の支払予定、目的別資金の進捗を分析してください。',
+      '・withinAggregationPeriod=true は現在の給与サイクル（25日〜24日）の対象明細です。',
+      '・確定、予定、推測、未確認を区別し、予定額と確定額を混同しないでください。',
+      '・fixedExpenseMasters は入力候補であり、実際の支出実績ではありません。',
+      '・未入力項目は推測で補完せず、必要な確認事項として示してください。',
+      '',
+      '【お金コンパス共有データ（JSON）】',
+      JSON.stringify(data,null,2)
+    ].join('\n');
+  }
+
+  async function copyText(value){
+    if(typeof navigator!=='undefined'&&navigator.clipboard?.writeText){
+      await navigator.clipboard.writeText(value);
+      return;
+    }
+    const area=document.createElement('textarea');
+    area.value=value;
+    area.setAttribute('readonly','');
+    area.style.position='fixed';
+    area.style.opacity='0';
+    document.body.appendChild(area);
+    area.select();
+    const copied=document.execCommand('copy');
+    area.remove();
+    if(!copied)throw new Error('copy failed');
   }
 
   function bind(){
     const button=document.querySelector('#shareWithHouseholdAi');
     if(!button)return;
+    const summary=document.querySelector('#householdAiShareSummary');
+    const currentData=buildExport(typeof state!=='undefined'?state:{},new Date());
+    if(summary)summary.textContent=shareSummary(currentData);
     button.addEventListener('click',async()=>{
       const sourceState=typeof state!=='undefined'?state:{};
       const exportedAt=new Date(),data=buildExport(sourceState,exportedAt);
-      if(!confirm(confirmationText(data)))return;
-      const result=await shareOrDownload(data,exportedAt);
-      if(result==='shared'&&typeof toast==='function')toast('家計データを共有しました');
-      if(result==='downloaded'&&typeof toast==='function')toast('JSON・CSVを書き出しました');
+      try{
+        await copyText(toClipboardText(data));
+        if(summary)summary.textContent=shareSummary(data);
+        if(typeof toast==='function')toast(`全履歴${data.metadata.counts.expenses}件をコピーしました`);
+      }catch(error){
+        if(typeof toast==='function')toast('コピーできませんでした。Safariで再度お試しください');
+      }
     });
   }
 
-  globalThis.OkaneCompassExport={STATUS,salaryPeriod,buildExport,toCsv,confirmationText,localStamp};
+  globalThis.OkaneCompassExport={STATUS,salaryPeriod,buildExport,toCsv,toClipboardText,shareSummary,localStamp};
   if(typeof document!=='undefined')bind();
 })();
