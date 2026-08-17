@@ -16,4 +16,14 @@ assert.equal(decoded.state.transactions[0].memo,'QP/セイユウ');
 assert.equal(decoded.state.transactions[0].source,'au PAY履歴画像');
 assert.throws(()=>api.decodeTransfer('invalid'));
 
+const patch={balances:{pocket:37143},fundBalances:{pass:9100},fixedExpenses:[{id:'bread',name:'あんぱん',amount:200,category:'食費・日用品'}],transactionCorrections:[{idPrefix:'tx-',source:'au PAY履歴画像'},{id:'tx-1',memo:'QP/セイユウ'}]};
+const patchCode=api.encodePatch(patch,new Date('2026-08-17T03:10:00.000Z'));
+const patchPayload=api.decodeInput(patchCode);
+const patched=api.applyPatch({...state,balances:{food:15694,pocket:0},funds:[{id:'pass',name:'定期券',balance:0,target:54310,deadline:''}],fixedExpenses:[]},patchPayload.patch);
+assert.equal(patched.balances.pocket,37143);
+assert.equal(patched.funds[0].balance,9100);
+assert.equal(patched.fixedExpenses[0].name,'あんぱん');
+assert.equal(patched.transactions[0].memo,'QP/セイユウ');
+assert.equal(patched.transactions[0].source,'au PAY履歴画像');
+
 console.log('data-transfer tests passed');
