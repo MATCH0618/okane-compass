@@ -1,32 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-labelledby="title desc">
   <title id="title">コンパスくん</title>
-  <desc id="desc">黒い装甲と青緑のバイザーを備えた近未来の男性型スカウトロボ</desc>
+  <desc id="desc">琥珀色の目と旅装を備えた、精悍な黒狼の冒険者</desc>
   <defs>
-    <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#26333b"/><stop offset="1" stop-color="#0b1115"/></linearGradient>
-    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#60717b"/><stop offset="1" stop-color="#222d33"/></linearGradient>
-    <linearGradient id="visor" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#91fff3"/><stop offset=".45" stop-color="#20d9cb"/><stop offset="1" stop-color="#08766f"/></linearGradient>
-    <radialGradient id="core"><stop stop-color="#ffd37a"/><stop offset=".45" stop-color="#ff9f2f"/><stop offset="1" stop-color="#b74c12"/></radialGradient>
-    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="7"/></filter>
+    <linearGradient id="night" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#12272a"/><stop offset="1" stop-color="#071012"/></linearGradient>
+    <linearGradient id="fur" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#3f4b4d"/><stop offset=".48" stop-color="#1e292b"/><stop offset="1" stop-color="#0c1416"/></linearGradient>
+    <linearGradient id="muzzle" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#637073"/><stop offset="1" stop-color="#263234"/></linearGradient>
+    <linearGradient id="cloak" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#164d4b"/><stop offset="1" stop-color="#082a2b"/></linearGradient>
+    <radialGradient id="amber"><stop stop-color="#fff0a8"/><stop offset=".35" stop-color="#ffc34d"/><stop offset="1" stop-color="#c45a13"/></radialGradient>
+    <filter id="eyeGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4"/></filter>
   </defs>
-  <circle cx="160" cy="160" r="145" fill="#071014" opacity=".96"/>
-  <path d="M44 236C75 196 93 183 116 175l33 133H55z" fill="#0e3f43" opacity=".88"/>
-  <path d="M276 235c-29-38-51-51-74-60l-31 133h94z" fill="#092a30" opacity=".9"/>
-  <path d="M68 246c10-38 34-59 71-69h42c39 10 63 31 72 69l9 62H58z" fill="url(#armor)" stroke="#6d8088" stroke-width="3"/>
-  <path d="M68 248c1-23 15-45 39-55l25 39-12 76H57zM252 248c-1-23-15-45-39-55l-25 39 12 76h63z" fill="url(#metal)"/>
-  <path d="M110 189l23-24h54l24 24-19 42h-64z" fill="#121c21" stroke="#71858d" stroke-width="3"/>
-  <path d="M123 91c5-39 22-58 37-67 19 9 36 30 39 67l14 20-7 57-29 24h-35l-29-24-7-57z" fill="url(#armor)" stroke="#82959d" stroke-width="4"/>
-  <path d="M126 55l34-28 35 30-9 15h-52z" fill="#34454d"/>
-  <path d="M112 105l19-31h58l20 31-14 28h-70z" fill="#05090b" stroke="#415158" stroke-width="3"/>
-  <path d="M125 108l13-19h45l13 19-12 12h-48z" fill="#18d4c6" opacity=".25" filter="url(#glow)"/>
-  <path d="M124 106l14-18h45l14 18-13 13h-48z" fill="url(#visor)"/>
-  <path d="M135 139h50l-8 28-17 10-18-10z" fill="#1b282e" stroke="#4c5f67" stroke-width="2"/>
-  <path d="M145 152h30" stroke="#91a5ad" stroke-width="3" stroke-linecap="round"/>
-  <path d="M114 116l-19 13 7 41 21 8 5-24zM206 116l19 13-7 41-21 8-5-24z" fill="#25343b" stroke="#71858d" stroke-width="3"/>
-  <path d="M78 218l32-22 21 36-22 25-38-5zM242 218l-32-22-21 36 22 25 38-5z" fill="#1a262c" stroke="#60737b" stroke-width="3"/>
-  <circle cx="160" cy="239" r="33" fill="#081014" stroke="#4e626a" stroke-width="5"/>
-  <circle cx="160" cy="239" r="21" fill="#ff9f2f" opacity=".22" filter="url(#glow)"/>
-  <circle cx="160" cy="239" r="18" fill="url(#core)" stroke="#ffd98e" stroke-width="2"/>
-  <path d="M160 222l5 12 12 5-12 5-5 12-5-12-12-5 12-5z" fill="#fff5d6"/>
-  <path d="M117 282h86M126 297h68" stroke="#20d9cb" stroke-width="4" stroke-linecap="round" opacity=".65"/>
-  <circle cx="98" cy="151" r="4" fill="#ffad39"/><circle cx="222" cy="151" r="4" fill="#ffad39"/>
+  <circle cx="160" cy="160" r="145" fill="url(#night)"/>
+  <path d="M30 218C80 183 106 174 160 174s80 9 130 44v90H30z" fill="#071012"/>
+  <path d="M58 246c15-37 43-59 75-66h54c33 7 60 29 75 66l8 62H50z" fill="url(#cloak)" stroke="#39706d" stroke-width="3"/>
+  <path d="M71 251l52-58 20 38-15 77H55zM249 251l-52-58-20 38 15 77h73z" fill="#111b1c" stroke="#3d4c4d" stroke-width="3"/>
+  <path d="M112 181l17-35h62l17 35-21 47h-54z" fill="#263335"/>
+  <path d="M103 57L131 17l16 56zM217 57l-28-40-16 56z" fill="url(#fur)" stroke="#526063" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M112 53l17-24 7 36zM208 53l-17-24-7 36z" fill="#784b3b" opacity=".55"/>
+  <path d="M102 68c15-26 35-38 58-38s43 12 58 38l5 58-24 58-39 27-39-27-24-58z" fill="url(#fur)" stroke="#5d6b6d" stroke-width="4"/>
+  <path d="M104 75c8-13 17-22 31-30l-12 36-25 23zM216 75c-8-13-17-22-31-30l12 36 25 23z" fill="#4a5759" opacity=".65"/>
+  <path d="M109 104l33-16 9 15-18 17-27-2zM211 104l-33-16-9 15 18 17 27-2z" fill="#0b1213"/>
+  <path d="M114 105l25-9 7 7-16 8-16-1zM206 105l-25-9-7 7 16 8 16-1z" fill="#f2a52b" opacity=".28" filter="url(#eyeGlow)"/>
+  <path d="M116 104l21-7 9 7-15 8-15-2zM204 104l-21-7-9 7 15 8 15-2z" fill="url(#amber)"/>
+  <path d="M132 105l7-3-2 8zM188 105l-7-3 2 8z" fill="#15110b"/>
+  <path d="M121 132l18-22 21 14 21-14 18 22-8 42-31 24-31-24z" fill="url(#muzzle)"/>
+  <path d="M143 128l17-8 17 8-6 13-11 5-11-5z" fill="#090d0e" stroke="#738083" stroke-width="2"/>
+  <path d="M160 145v25M160 170l-16 4M160 170l16 4" fill="none" stroke="#11191a" stroke-width="3" stroke-linecap="round"/>
+  <path d="M142 180l18 7 18-7" fill="none" stroke="#8b989a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M111 123l-15 17 12 38 23 9-9-27zM209 123l15 17-12 38-23 9 9-27z" fill="#1a2527" stroke="#516062" stroke-width="3"/>
+  <path d="M126 69l-8 18M194 69l8 18M105 149l12 4M215 149l-12 4" stroke="#788587" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+  <path d="M184 71l12 11-9 8" fill="none" stroke="#a36b4e" stroke-width="3" stroke-linecap="round"/>
+  <path d="M109 207l51 32 51-32" fill="none" stroke="#6a4128" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="160" cy="244" r="25" fill="#10191a" stroke="#b8792f" stroke-width="4"/>
+  <circle cx="160" cy="244" r="16" fill="url(#amber)"/>
+  <path d="M160 230l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" fill="#fff1bd"/>
+  <path d="M93 282h40M187 282h40" stroke="#2f6764" stroke-width="4" stroke-linecap="round"/>
 </svg>
