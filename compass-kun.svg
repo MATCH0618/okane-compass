@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-labelledby="title desc">
+  <title id="title">コンパスくん</title>
+  <desc id="desc">黒い装甲と青緑のバイザーを備えた近未来の男性型スカウトロボ</desc>
+  <defs>
+    <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#26333b"/><stop offset="1" stop-color="#0b1115"/></linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#60717b"/><stop offset="1" stop-color="#222d33"/></linearGradient>
+    <linearGradient id="visor" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#91fff3"/><stop offset=".45" stop-color="#20d9cb"/><stop offset="1" stop-color="#08766f"/></linearGradient>
+    <radialGradient id="core"><stop stop-color="#ffd37a"/><stop offset=".45" stop-color="#ff9f2f"/><stop offset="1" stop-color="#b74c12"/></radialGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="7"/></filter>
+  </defs>
+  <circle cx="160" cy="160" r="145" fill="#071014" opacity=".96"/>
+  <path d="M44 236C75 196 93 183 116 175l33 133H55z" fill="#0e3f43" opacity=".88"/>
+  <path d="M276 235c-29-38-51-51-74-60l-31 133h94z" fill="#092a30" opacity=".9"/>
+  <path d="M68 246c10-38 34-59 71-69h42c39 10 63 31 72 69l9 62H58z" fill="url(#armor)" stroke="#6d8088" stroke-width="3"/>
+  <path d="M68 248c1-23 15-45 39-55l25 39-12 76H57zM252 248c-1-23-15-45-39-55l-25 39 12 76h63z" fill="url(#metal)"/>
+  <path d="M110 189l23-24h54l24 24-19 42h-64z" fill="#121c21" stroke="#71858d" stroke-width="3"/>
+  <path d="M123 91c5-39 22-58 37-67 19 9 36 30 39 67l14 20-7 57-29 24h-35l-29-24-7-57z" fill="url(#armor)" stroke="#82959d" stroke-width="4"/>
+  <path d="M126 55l34-28 35 30-9 15h-52z" fill="#34454d"/>
+  <path d="M112 105l19-31h58l20 31-14 28h-70z" fill="#05090b" stroke="#415158" stroke-width="3"/>
+  <path d="M125 108l13-19h45l13 19-12 12h-48z" fill="#18d4c6" opacity=".25" filter="url(#glow)"/>
+  <path d="M124 106l14-18h45l14 18-13 13h-48z" fill="url(#visor)"/>
+  <path d="M135 139h50l-8 28-17 10-18-10z" fill="#1b282e" stroke="#4c5f67" stroke-width="2"/>
+  <path d="M145 152h30" stroke="#91a5ad" stroke-width="3" stroke-linecap="round"/>
+  <path d="M114 116l-19 13 7 41 21 8 5-24zM206 116l19 13-7 41-21 8-5-24z" fill="#25343b" stroke="#71858d" stroke-width="3"/>
+  <path d="M78 218l32-22 21 36-22 25-38-5zM242 218l-32-22-21 36 22 25 38-5z" fill="#1a262c" stroke="#60737b" stroke-width="3"/>
+  <circle cx="160" cy="239" r="33" fill="#081014" stroke="#4e626a" stroke-width="5"/>
+  <circle cx="160" cy="239" r="21" fill="#ff9f2f" opacity=".22" filter="url(#glow)"/>
+  <circle cx="160" cy="239" r="18" fill="url(#core)" stroke="#ffd98e" stroke-width="2"/>
+  <path d="M160 222l5 12 12 5-12 5-5 12-5-12-12-5 12-5z" fill="#fff5d6"/>
+  <path d="M117 282h86M126 297h68" stroke="#20d9cb" stroke-width="4" stroke-linecap="round" opacity=".65"/>
+  <circle cx="98" cy="151" r="4" fill="#ffad39"/><circle cx="222" cy="151" r="4" fill="#ffad39"/>
+</svg>
